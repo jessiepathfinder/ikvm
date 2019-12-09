@@ -212,7 +212,7 @@ static class Java_java_io_FileInputStream
 #endif
 	}
 
-	public static long skip(object _this, long n, [In] java.io.FileDescriptor fd)
+	public static long skip0(object _this, long n, [In] java.io.FileDescriptor fd)
 	{
 #if FIRST_PASS
 		return 0;
@@ -221,7 +221,7 @@ static class Java_java_io_FileInputStream
 #endif
 	}
 
-	public static int available(object _this, [In] java.io.FileDescriptor fd)
+	public static int available0(object _this, [In] java.io.FileDescriptor fd)
 	{
 #if FIRST_PASS
 		return 0;

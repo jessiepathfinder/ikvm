@@ -1,0 +1,8 @@
+Manifest-Version: 1.0
+Implementation-Title: Java Runtime Environment
+Implementation-Version: 1.8.0_222-2-ojdkbuild
+Specification-Vendor: Oracle Corporation
+Specification-Title: Java Platform API Specification
+Specification-Version: 1.8
+Created-By: 1.8.0_222-2-ojdkbuild (Oracle Corporation), IKVM.NET (Jessie Lesbian, Jeroen Frijters, and Windward Studios)
+Implementation-Vendor: Jessie Lesbian, Jeroen Frijters, and Windward Studios

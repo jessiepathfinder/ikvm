@@ -75,7 +75,6 @@
                 <include name="bin-x86/JVM.DLL" />
                 <include name="lib/ikvm-api.jar" />
                 <include name="openjdk/*.dll" />
-                <include name="openjdk/*.jar" />
                 <include name="openjdk/allsources.gen.lst" />
                 <include name="openjdk/copyright.txt" />
                 <include name="openjdk/java/lang/PropertyConstants.java" />

@@ -30,118 +30,27 @@
     <property name="OPENJDK_VERSION" value="OpenJDK 8u45 b14" />
     <property name="IMPLEMENTATION_VERSION" value="1.8.0" />
     <property name="SPECIFICATION_VERSION" value="1.8" />
-    <property name="FULL_VERSION" value="1.8.0_45-b14" />
+    <property name="FULL_VERSION" value="1.8.0_222-2-ojdkbuild" />
     <property name="OpenJDK.dir" value="${project::get-base-directory()}/src" />
     <if test="${platform::is-win32()}">
         <property name="pathsep" value=";" />
     </if>
-
-    <target name="version">
-        <property name="VERSION" value="${assemblyname::get-version(assemblyname::get-assembly-name(path::combine(project::get-base-directory(), '../bin/IKVM.Runtime.dll')))}" />
-    </target>
     
     <target name="vfs">
         <!-- This file is generated here, but it is added as a resource to IKVM.Runtime.dll, because Ref.Emit on .NET 1.1 doesn't support adding a raw resource. -->
-        <zip zipfile="vfs.zip">
-            <fileset basedir="${OpenJDK.dir}/build/linux-x86_64-normal-server-release/jdk">
-                <include name="lib/calendars.properties" />
-                <include name="lib/logging.properties" />
-                <include name="lib/management/management.properties" />
-                <include name="lib/net.properties" />
-                <include name="lib/psfontj2d.properties" />
-                <include name="lib/sound.properties" />
-                <include name="lib/cmm/*" />
-                <include name="lib/tzdb.dat" />
-                <include name="lib/currency.data" />
-                <include name="lib/security/java.policy" />
-                <include name="lib/security/java.security" />
-                <!--
-                we don't add lib/security/local_policy.jar, because it is the restricted version,
-                instead we'll add a link in vfs from local_policy.jar to US_export_policy.jar
-                (because US_export_policy.jar is unrestricted)
-                -->
-                <include name="lib/security/US_export_policy.jar" />
-            </fileset>
-            <fileset basedir="${OpenJDK.dir}/jdk/src/windows">
-                <include name="lib/flavormap.properties" />
-                <include name="lib/content-types.properties" />
-            </fileset>
+        	<zip zipfile="vfs.zip">
+	            <fileset>
+	                <include name="lib/**" />
+	            </fileset>
             </zip>
         </target>
-
-    <target name="resources">
-        <!-- collect the resources in a zip to make it easier to include them in the right assemblies -->
-        <zip zipfile="resources.zip">
-            <fileset basedir="${OpenJDK.dir}/build/linux-x86_64-normal-server-release/jdk/classes">
-                <include name="com/sun/corba/se/impl/orbutil/resources/*.properties" />
-                <include name="com/sun/rowset/*.properties" />
-                <include name="javax/swing/text/html/parser/html32.bdtd" />
-                <include name="sun/rmi/registry/resources/*.properties" />
-                <include name="sun/rmi/server/resources/*.properties" />
-                <include name="sun/text/resources/*IteratorData" />
-                <include name="sun/text/resources/th/*IteratorData_th" />
-                <include name="sun/text/resources/th/thai_dict" />
-            </fileset>
-            <fileset basedir="${OpenJDK.dir}/corba/src/share/classes">
-                <include name="**/*.properties" />
-            </fileset>
-            <fileset basedir="${OpenJDK.dir}/jdk/src/share/classes">
-                <include name="**/*.properties" />
-                <include name="**/*.gif" />
-                <include name="**/*.png" />
-                <include name="**/*.wav" />
-                <include name="com/sun/org/apache/xml/internal/security/resource/config.*" />
-                <include name="com/sun/swing/internal/plaf/**/*" />
-                <include name="javax/swing/text/html/default.css" />
-                <include name="javax/swing/text/rtf/charsets/*.txt" />
-                <include name="sun/text/resources/**/*.icu" />
-            </fileset>
-            <fileset basedir="${OpenJDK.dir}/jaxp/src">
-                <include name="**/*.properties" />
-                <include name="**/*.res" />
-            </fileset>
-            <fileset basedir="${OpenJDK.dir}/jaxws/src/share/jaf_classes">
-                <include name="**/*.properties" />
-            </fileset>
-            <fileset basedir="${OpenJDK.dir}/jaxws/src/share/jaxws_classes">
-                <include name="**/*.properties" />
-                <include name="**/*.xml" />
-            </fileset>
-        </zip>
-    </target>
-
-    <target name="MANIFEST.MF">
-        <copy file="MANIFEST.MF.in" tofile="MANIFEST.MF" outputencoding="ascii" overwrite="true">
-            <filterchain>
-                <replacetokens>
-                    <token key="IMPLEMENTATION_VERSION" value="${IMPLEMENTATION_VERSION}" />
-                    <token key="SPECIFICATION_VERSION" value="${SPECIFICATION_VERSION}" />
-                </replacetokens>
-            </filterchain>
-        </copy>
-        <!-- copy the timestamp from the input file, because the timestamp ends up in resources.jar and affects deterministics builds -->
-        <touch file="MANIFEST.MF" datetime="${file::get-last-write-time('MANIFEST.MF.in')}" />
-    </target>
-
-    <target name="nashorn-version">
-        <copy file="resources/nashorn/version.properties.in" tofile="resources/nashorn/version.properties" outputencoding="ascii" overwrite="true">
-            <filterchain>
-                <replacetokens>
-                    <token key="FULL_VERSION" value="${FULL_VERSION}" />
-                    <token key="IMPLEMENTATION_VERSION" value="${IMPLEMENTATION_VERSION}" />
-                </replacetokens>
-            </filterchain>
-        </copy>
-        <!-- copy the timestamp from the input file, because the timestamp ends up in resources.jar and affects deterministics builds -->
-        <touch file="resources/nashorn/version.properties" datetime="${file::get-last-write-time('resources/nashorn/version.properties.in')}" />
-    </target>
     
-    <target name="core" depends="vfs resources version MANIFEST.MF nashorn-version">
+    <target name="core" depends="vfs">
         <copy file="../bin/IKVM.Runtime.dll" todir="." />
         <copy file="../bin/IKVM.AWT.WinForms.dll" todir="." />
         <exec program="${project::get-base-directory()}/../bin/ikvmc.exe" useruntimeengine="true">
         	<arg value="-assemblyattributes:commonAttributes.class"/>
-            <arg value="-version:${VERSION}" />
+            <arg value="-version:8.6.1.0" />
             <arg value="${signoption}" />
             <arg value="-strictfinalfieldsemantics" />
             <arg value="-target:library" />
@@ -151,10 +60,6 @@
             <arg value="-r:System.Core.dll" unless="${SkipSystemCoreDependency}" />
             <arg value="-r:System.Xml.dll" />
             <arg value="-r:IKVM.Runtime.dll" />
-            <!-- we already know that the JNI assembly is not available, so suppress the warning -->
-            <arg value="-nowarn:110" />
-            <arg value="-w4" />
-            <arg value="-warnaserror" />
             <!-- we need optimizations since Jessie Lesbian had waiting difficulties. -->
             <arg value="-optimize:5" />
             <arg value="-removeassertions" />
@@ -165,6 +70,8 @@
             <arg value="-nostacktraceinfo"/>
             <arg value="-filealign:4096"/>
             <arg value="-noautoserialization"/>
+            <!-- to stop IKVMC from complaining about missing native methods -->
+            <arg value="-nojni" />
             <arg value="@response.txt" />
         </exec>
         <if test="${property::exists('peverify')}">
@@ -206,49 +113,47 @@
     <target name="tools" depends="core">
     <!-- OpenJDK.NET: The OpenJDK port for Microsoft.NET made by Jessie Lesbian -->
         <exec program="${project::get-base-directory()}/../bin/ikvmc.exe" useruntimeengine="true">
-            <arg value="-version:${VERSION}" />
             <arg value="-apartment:none"/>
             <arg value="-out:../bin/javac.exe" />
             <arg value="-main:com.sun.tools.javac.Main" /> <!-- FIXED javac not working -->
             <arg value="-r:../bin/IKVM.OpenJDK.Core.dll" />
         </exec>
         <exec program="${project::get-base-directory()}/../bin/ikvmc.exe" useruntimeengine="true">
-            <arg value="-version:${VERSION}" />
             <arg value="-apartment:none"/>
             <arg value="-out:../bin/javah.exe" />
             <arg value="-main:com.sun.tools.javah.Main" />
             <arg value="-r:../bin/IKVM.OpenJDK.Core.dll" />
         </exec>
         <exec program="${project::get-base-directory()}/../bin/ikvmc.exe" useruntimeengine="true">
-            <arg value="-version:${VERSION}" />
+            <arg value="-assemblyattributes:commonAttributes.class"/>
             <arg value="-apartment:none"/>
             <arg value="-out:../bin/javap.exe" />
             <arg value="-main:com.sun.tools.javap.Main" />
             <arg value="-r:../bin/IKVM.OpenJDK.Core.dll" />
         </exec>
         <exec program="${project::get-base-directory()}/../bin/ikvmc.exe" useruntimeengine="true">
-            <arg value="-version:${VERSION}" />
+            <arg value="-assemblyattributes:commonAttributes.class"/>
             <arg value="-apartment:none"/>
             <arg value="-out:../bin/jar.exe" />
             <arg value="-main:sun.tools.jar.Main" />
             <arg value="-r:../bin/IKVM.OpenJDK.Core.dll" />
         </exec>
         <exec program="${project::get-base-directory()}/../bin/ikvmc.exe" useruntimeengine="true">
-            <arg value="-version:${VERSION}" />
+            <arg value="-assemblyattributes:commonAttributes.class"/>
             <arg value="-apartment:none"/>
             <arg value="-out:../bin/native2ascii.exe" />
             <arg value="-main:sun.tools.native2ascii.Main" />
             <arg value="-r:../bin/IKVM.OpenJDK.Core.dll" />
         </exec>
         <exec program="${project::get-base-directory()}/../bin/ikvmc.exe" useruntimeengine="true">
-            <arg value="-version:${VERSION}" />
+            <arg value="-assemblyattributes:commonAttributes.class"/>
             <arg value="-apartment:none"/>
             <arg value="-out:../bin/rmic.exe" />
             <arg value="-main:sun.rmi.rmic.Main" />
             <arg value="-r:../bin/IKVM.OpenJDK.Core.dll" />
         </exec>
         <exec program="${project::get-base-directory()}/../bin/ikvmc.exe" useruntimeengine="true">
-            <arg value="-version:${VERSION}" />
+            <arg value="-assemblyattributes:commonAttributes.class"/>
             <arg value="-apartment:none"/>
             <arg value="-out:../bin/newrmic.exe" />
             <arg value="-main:sun.rmi.rmic.newrmic.Main" />

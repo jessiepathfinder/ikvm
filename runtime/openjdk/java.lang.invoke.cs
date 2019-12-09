@@ -143,7 +143,7 @@ static class Java_java_lang_invoke_MethodHandleImpl
 		{
 			names.Add(new LambdaForm.Name(LambdaForm.constantZero(LambdaForm.BasicType.basicType(srcType.returnType()))));
 		}
-		LambdaForm form = new LambdaForm("PairwiseConvert", srcType.parameterCount() + 1, names.ToArray(), srcType.returnType() == java.lang.Void.TYPE ? LambdaForm.VOID_RESULT : LambdaForm.LAST_RESULT, false);
+		LambdaForm form = new LambdaForm("PairwiseConvert", srcType.parameterCount() + 1, names.ToArray(), true);
 		return new LightWeightMethodHandle(srcType, form);
 #endif
 	}
