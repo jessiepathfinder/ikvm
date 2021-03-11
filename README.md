@@ -1,6 +1,12 @@
 # Jessie Lesbian's IKVM.NET fork (aka Jessie Lesbian's cute-looking .NET-based Java Virtual Machine)
 
-![this software is proudly made by LGBT programmers](https://raw.githubusercontent.com/jessielesbian/ikvm/master/ikvmbadge.png)
+![Latest AppVeyor build](https://ci.appveyor.com/api/projects/status/32r7s2skrgm9ubva?retina=false)
+
+![Latest CircleCI build](https://circleci.com/gh/jessielesbian/ikvm.svg?style=svg)
+
+## YourKit Sponsorship
+
+YourKit supports open source projects with innovative and intelligent tools for monitoring and profiling Java and .NET applications. YourKit is the creator of <a href="https://www.yourkit.com/java/profiler/">YourKit Java Profiler</a>, <a href="https://www.yourkit.com/.net/profiler/">YourKit .NET Profiler</a>, and <a href="https://www.yourkit.com/youmonitor/">YourKit YouMonitor</a>.
 
 ## List of changes Jessie Lesbian made
 
@@ -36,14 +42,17 @@
  + NEW IKVM options: -Xoptimize:n, -Xpreoptimize and -Xextremeoptimize
  + Added file caching
  + Converted quardspaces to indentations
- + Upgraded to IKVMClass v1.0.1 from OpenJDK 8u45
+ + Upgraded to IKVMClass v1.0.3 from OpenJDK 8u45
+ + Improved Dynamic Class Loading
 
 ## List of changes Jessie Lesbian want to make
 
  + MORE OPTIMIZATIONS!
  + Fully support Swing and AWT
  + Play Minecraft with this IKVM.NET fork
- 
+
+![this software is proudly made by LGBT programmers](https://raw.githubusercontent.com/jessielesbian/ikvm/master/ikvmbadge.png)
+
 ## What I done well
 
  + There are some closed-source versions with whole-program optimization
