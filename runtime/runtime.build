@@ -122,7 +122,7 @@
 
 	<target name="vfs">
         <!-- This file is generated here, but it is added as a resource to IKVM.Runtime.dll, because Ref.Emit on .NET 1.1 doesn't support adding a raw resource. -->
-        <zip zipfile="vfs.zip">
+        <zip zipfile="../openjdk/vfs.zip">
             <fileset basedir="../openjdk/NGVFS">
                 <include name="lib/*.properties" />
                 <include name="lib/cmm/*" />

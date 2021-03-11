@@ -3437,12 +3437,14 @@ namespace ikvm.awt
 
 		public void select(int start_pos, int end_pos)
 		{
-			throw new NotImplementedException();
+			// Added by Jessie
+			return NetToolkit.Invoke(delegate { control.Select(start_pos, end_pos) });
 		}
 
 		public void setEditable(bool editable)
 		{
-			throw new NotImplementedException();
+			// Added by Jessie
+			return NetToolkit.Invoke(delegate { control.ReadOnly = editable });
 		}
 
 		public int getCaretPosition()
@@ -3724,12 +3726,14 @@ namespace ikvm.awt
 
 		public void select(int start_pos, int end_pos)
 		{
-			throw new NotImplementedException();
+			// Added by Jessie
+			return NetToolkit.Invoke(delegate { control.Select(start_pos, end_pos) });
 		}
 
 		public void setEditable(bool editable)
 		{
-			throw new NotImplementedException();
+			// Added by Jessie
+			return NetToolkit.Invoke(delegate { control.ReadOnly = editable });
 		}
 
 		public int getCaretPosition()
