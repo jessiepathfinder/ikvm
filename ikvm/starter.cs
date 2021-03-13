@@ -406,9 +406,9 @@ public static class Starter
 					method.invoke(null, new object[] { vmargs });
 					return 0;
 				}
-				catch(InvocationTargetException x)
+				catch(Exception e)
 				{
-					throw x.getCause();
+					Console.Error.WriteLine(e.ToString());
 				}
 			}
 			finally
