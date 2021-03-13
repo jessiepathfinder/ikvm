@@ -406,9 +406,10 @@ public static class Starter
 					method.invoke(null, new object[] { vmargs });
 					return 0;
 				}
-				catch(Exception e)
+				catch(System.Exception e)
 				{
 					Console.Error.WriteLine(e.ToString());
+					Environment.Exit(1);
 				}
 			}
 			finally
