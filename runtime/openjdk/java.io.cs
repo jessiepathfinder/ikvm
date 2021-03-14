@@ -128,16 +128,16 @@ public static class Java_java_io_FileDescriptor
 	{
 		if (VirtualFileSystem.IsVirtualFS(name))
 		{
-			return considerCache(VirtualFileSystem.Open(name, fileMode, fileAccess));
+			return VirtualFileSystem.Open(name, fileMode, fileAccess);
 		}
 		else if (fileMode == FileMode.Append)
 		{
 			// this is the way to get atomic append behavior for all writes
-			return considerCache(new FileStream(name, fileMode, FileSystemRights.AppendData, FileShare.ReadWrite, 1, FileOptions.None));
+			return new FileStream(name, fileMode, FileSystemRights.AppendData, FileShare.ReadWrite, 1, FileOptions.None);
 		}
 		else
 		{
-			return considerCache(new FileStream(name, fileMode, fileAccess, FileShare.ReadWrite, 1, false));
+			return new FileStream(name, fileMode, fileAccess, FileShare.ReadWrite, 1, false);
 		}
 	}
 	public static Stream considerCache(Stream str){

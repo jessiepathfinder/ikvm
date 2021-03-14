@@ -30,3 +30,4 @@ runtime/*.jar
 tools/*.exe
 tools/*.dll
 tools/pubkey.txt
+*.java
