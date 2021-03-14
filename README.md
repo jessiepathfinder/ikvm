@@ -1,8 +1,6 @@
 # Jessie Lesbian's IKVM.NET fork (aka Jessie Lesbian's cute-looking .NET-based Java Virtual Machine)
 
-![Latest AppVeyor build](https://ci.appveyor.com/api/projects/status/32r7s2skrgm9ubva?retina=false)
-
-![Latest CircleCI build](https://circleci.com/gh/jessielesbian/ikvm.svg?style=svg)
+[![Build status](https://ci.appveyor.com/api/projects/status/ikpd1g6nk24b8pa7?svg=true)](https://ci.appveyor.com/project/jessielesbian/ikvm)
 
 ## YourKit Sponsorship
 
