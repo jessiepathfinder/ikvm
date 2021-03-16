@@ -10,11 +10,11 @@
   freely, subject to the following restrictions:
 
   1. The origin of this software must not be misrepresented; you must not
-	 claim that you wrote the original software. If you use this software
-	 in a product, an acknowledgment in the product documentation would be
-	 appreciated but is not required.
+     claim that you wrote the original software. If you use this software
+     in a product, an acknowledgment in the product documentation would be
+     appreciated but is not required.
   2. Altered source versions must be plainly marked as such, and must not be
-	 misrepresented as being the original software.
+     misrepresented as being the original software.
   3. This notice may not be removed or altered from any source distribution.
 
   Jeroen Frijters
@@ -1042,6 +1042,7 @@ namespace IKVM.Reflection
 		public ConstructorInfo GetConstructor(BindingFlags bindingAttr, Binder binder, Type[] types, ParameterModifier[] modifiers)
 		{
 			ConstructorInfo ci1 = null;
+			bindingAttr |= BindingFlags.DeclaredOnly;
 			if ((bindingAttr & BindingFlags.Instance) != 0)
 			{
 				ci1 = GetConstructorImpl(ConstructorInfo.ConstructorName, bindingAttr, binder, types, modifiers);

@@ -10,11 +10,11 @@
   freely, subject to the following restrictions:
 
   1. The origin of this software must not be misrepresented; you must not
-	 claim that you wrote the original software. If you use this software
-	 in a product, an acknowledgment in the product documentation would be
-	 appreciated but is not required.
+     claim that you wrote the original software. If you use this software
+     in a product, an acknowledgment in the product documentation would be
+     appreciated but is not required.
   2. Altered source versions must be plainly marked as such, and must not be
-	 misrepresented as being the original software.
+     misrepresented as being the original software.
   3. This notice may not be removed or altered from any source distribution.
 
   Jeroen Frijters
@@ -46,8 +46,8 @@ namespace IKVM.Reflection.Impl
 
 		void GetTypeDefProps(
 			int			td,                     // [IN] TypeDef token for inquiry.
-			IntPtr		szTypeDef,              // [OUT] Put name here.
-			int			cchTypeDef,             // [IN] size of name buffer in wide chars.
+	        IntPtr		szTypeDef,              // [OUT] Put name here.
+		    int			cchTypeDef,             // [IN] size of name buffer in wide chars.
 			IntPtr		pchTypeDef,				// [OUT] put size of name (wide chars) here.
 			IntPtr		pdwTypeDefFlags,		// [OUT] Put flags here.
 			IntPtr		ptkExtends);			// [OUT] Put base class TypeDef/TypeRef here.
@@ -80,7 +80,7 @@ namespace IKVM.Reflection.Impl
 			IntPtr		ppvSigBlob,				// [OUT] point to the blob value of meta data   
 			IntPtr		pcbSigBlob,				// [OUT] actual size of signature blob  
 			IntPtr		pulCodeRVA,				// [OUT] codeRVA    
-			IntPtr		pdwImplFlags);			// [OUT] Impl. Flags    
+			IntPtr		pdwImplFlags);		    // [OUT] Impl. Flags    
 
 		void PlaceHolder_GetMemberRefProps();
 		void PlaceHolder_EnumProperties();

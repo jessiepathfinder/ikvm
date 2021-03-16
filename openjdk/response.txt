@@ -806,6 +806,7 @@ src/jdk/src/share/classes/java/util/prefs/*.class
 src/jdk/src/share/classes/java/util/spi/*.class
 src/jdk/src/share/classes/java/util/zip/*.class
 src/jdk/src/share/classes/sun/launcher/*.class
+src/jdk/src/share/classes/sun/launcher/resources/*.class
 src/jdk/src/share/classes/sun/util/calendar/*.class
 src/jdk/src/share/classes/sun/util/resources/*.class
 src/jdk/src/share/classes/sun/util/resources/en/*.class

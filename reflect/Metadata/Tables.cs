@@ -10,11 +10,11 @@
   freely, subject to the following restrictions:
 
   1. The origin of this software must not be misrepresented; you must not
-	 claim that you wrote the original software. If you use this software
-	 in a product, an acknowledgment in the product documentation would be
-	 appreciated but is not required.
+     claim that you wrote the original software. If you use this software
+     in a product, an acknowledgment in the product documentation would be
+     appreciated but is not required.
   2. Altered source versions must be plainly marked as such, and must not be
-	 misrepresented as being the original software.
+     misrepresented as being the original software.
   3. This notice may not be removed or altered from any source distribution.
 
   Jeroen Frijters
@@ -450,20 +450,28 @@ namespace IKVM.Reflection.Metadata
 				{
 					return new Enumerator(records, table.RowCount - 1, -1, token);
 				}
-				int index = BinarySearch(records, table.RowCount, token & 0xFFFFFF);
+				var maskedToken = token & 0xFFFFFF;
+				int index = BinarySearch(records, table.RowCount, maskedToken);
+
 				if (index < 0)
 				{
 					return new Enumerator(null, 0, 1, -1);
 				}
 				int start = index;
-				while (start > 0 && (records[start - 1].FilterKey & 0xFFFFFF) == (token & 0xFFFFFF))
+				while (start > 0)
 				{
+					var maskedFilterKey = records [start - 1].FilterKey & 0xFFFFFF;
+					if (maskedFilterKey != maskedToken && maskedFilterKey != 0)
+						break;
 					start--;
 				}
 				int end = index;
 				int max = table.RowCount - 1;
-				while (end < max && (records[end + 1].FilterKey & 0xFFFFFF) == (token & 0xFFFFFF))
+				while (end < max)
 				{
+					var maskedFilterKey = records [end + 1].FilterKey & 0xFFFFFF;
+					if (maskedFilterKey != maskedToken && maskedFilterKey != 0)
+						break;
 					end++;
 				}
 				return new Enumerator(records, end, start - 1, token);
@@ -480,6 +488,13 @@ namespace IKVM.Reflection.Metadata
 					if (maskedToken == maskedValue)
 					{
 						return mid;
+					}
+					else if (maskedValue == 0)
+					{
+						if (min > 0)
+							min--;
+						if (max < length - 1)
+							max++;
 					}
 					else if (maskedToken < maskedValue)
 					{

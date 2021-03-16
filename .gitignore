@@ -31,3 +31,5 @@ tools/*.exe
 tools/*.dll
 tools/pubkey.txt
 *.java
+.vs/*
+
