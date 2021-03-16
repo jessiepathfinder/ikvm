@@ -1,7 +1,7 @@
 build_script:
  - nant\nant.exe
  - 7z a -mm=Deflate -mmt=on -mx=9 ikvm-test-build.zip .\bin\*
- artifacts:
+artifacts:
  - path: ikvm-test-build.zip
    name: ikvm-test-build
    type: zip
