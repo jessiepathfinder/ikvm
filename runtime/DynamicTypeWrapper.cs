@@ -49,6 +49,7 @@ namespace IKVM.Internal
 	sealed class DynamicTypeWrapper : TypeWrapper
 #endif
 	{
+		public static readonly MethodImplAttributes AggressiveInlining = (MethodImplAttributes)256;
 #if STATIC_COMPILER
 		protected readonly CompilerClassLoader classLoader;
 #else
@@ -3418,12 +3419,6 @@ namespace IKVM.Internal
 					mb.SetImplementationFlags(mb.GetMethodImplementationFlags() | MethodImplAttributes.Synchronized);
 				}
 
-				if (classFile.Methods[index].IsForceInline)
-				{
-					const MethodImplAttributes AggressiveInlining = (MethodImplAttributes)256;
-					mb.SetImplementationFlags(mb.GetMethodImplementationFlags() | AggressiveInlining);
-				}
-
 				if (classFile.Methods[index].IsLambdaFormCompiled || classFile.Methods[index].IsLambdaFormHidden)
 				{
 					HideFromJavaFlags flags = HideFromJavaFlags.None;
@@ -4576,6 +4571,8 @@ namespace IKVM.Internal
 							if (nonleaf)
 							{
 								mb.SetImplementationFlags(mb.GetMethodImplementationFlags() | MethodImplAttributes.NoInlining);
+							} else{
+								mb.SetImplementationFlags(mb.GetMethodImplementationFlags() | AggressiveInlining);
 							}
 #if STATIC_COMPILER
 							ilGenerator.EmitLineNumberTable(mb);
@@ -6329,6 +6326,8 @@ namespace IKVM.Internal
 				if (nonLeaf)
 				{
 					mb.SetImplementationFlags(mb.GetMethodImplementationFlags() | MethodImplAttributes.NoInlining);
+				} else{
+					mb.SetImplementationFlags(mb.GetMethodImplementationFlags() | AggressiveInlining);
 				}
 				ilGenerator.DoEmit();
 #if STATIC_COMPILER
