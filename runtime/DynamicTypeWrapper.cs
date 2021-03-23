@@ -4568,12 +4568,7 @@ namespace IKVM.Internal
 							Compiler.Compile(this, host, wrapper, methods[i], classFile, m, ilGenerator, ref nonleaf);
 							ilGenerator.CheckLabels();
 							ilGenerator.DoEmit();
-							if (nonleaf)
-							{
-								mb.SetImplementationFlags(mb.GetMethodImplementationFlags() | MethodImplAttributes.NoInlining);
-							} else{
-								mb.SetImplementationFlags(mb.GetMethodImplementationFlags() | AggressiveInlining);
-							}
+							mb.SetImplementationFlags(mb.GetMethodImplementationFlags() | MethodImplAttributes.NoInlining);
 #if STATIC_COMPILER
 							ilGenerator.EmitLineNumberTable(mb);
 #else // STATIC_COMPILER
@@ -6323,12 +6318,7 @@ namespace IKVM.Internal
 #endif
 				bool nonLeaf = false;
 				Compiler.Compile(context, host, wrapper, methods[methodIndex], classFile, m, ilGenerator, ref nonLeaf);
-				if (nonLeaf)
-				{
-					mb.SetImplementationFlags(mb.GetMethodImplementationFlags() | MethodImplAttributes.NoInlining);
-				} else{
-					mb.SetImplementationFlags(mb.GetMethodImplementationFlags() | AggressiveInlining);
-				}
+				mb.SetImplementationFlags(mb.GetMethodImplementationFlags() | MethodImplAttributes.NoInlining);
 				ilGenerator.DoEmit();
 #if STATIC_COMPILER
 				ilGenerator.EmitLineNumberTable((MethodBuilder)methods[methodIndex].GetMethod());
