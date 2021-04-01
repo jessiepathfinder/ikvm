@@ -233,5 +233,34 @@
             <arg value="-main:sun.rmi.rmic.newrmic.Main" />
             <arg value="-r:../bin/IKVM.OpenJDK.Core.dll" />
         </exec>
+		<!-- new OpenJDK.NET v2.0 Tools -->
+		<exec program="${project::get-base-directory()}/../bin/ikvmc.exe" useruntimeengine="true">
+            <arg value="-version:${VERSION}" />
+            <arg value="-apartment:none"/>
+            <arg value="-out:../bin/javadoc.exe" />
+            <arg value="-main:com.sun.tools.javadoc.Main" />
+            <arg value="-r:../bin/IKVM.OpenJDK.Core.dll" />
+        </exec>
+		<exec program="${project::get-base-directory()}/../bin/ikvmc.exe" useruntimeengine="true">
+            <arg value="-version:${VERSION}" />
+            <arg value="-apartment:none"/>
+            <arg value="-out:../bin/extcheck.exe" />
+            <arg value="-main:com.sun.tools.extcheck.Main" />
+            <arg value="-r:../bin/IKVM.OpenJDK.Core.dll" />
+        </exec>
+		<exec program="${project::get-base-directory()}/../bin/ikvmc.exe" useruntimeengine="true">
+            <arg value="-version:${VERSION}" />
+            <arg value="-apartment:none"/>
+            <arg value="-out:../bin/hat.exe" />
+            <arg value="-main:com.sun.tools.hat.Main" />
+            <arg value="-r:../bin/IKVM.OpenJDK.Core.dll" />
+        </exec>
+		<exec program="${project::get-base-directory()}/../bin/ikvmc.exe" useruntimeengine="true">
+            <arg value="-version:${VERSION}" />
+            <arg value="-apartment:none"/>
+            <arg value="-out:../bin/jdeps.exe" />
+            <arg value="-main:com.sun.tools.jdeps.Main" />
+            <arg value="-r:../bin/IKVM.OpenJDK.Core.dll" />
+        </exec>
     </target>
 </project>
