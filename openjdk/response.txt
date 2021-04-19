@@ -831,9 +831,6 @@ src/jdk/src/share/classes/sun/text/resources/en/*.class
 sun/security/jgss/wrapper/*.class
 src/build/linux-x86_64-normal-server-release/jdk/gensrc/sun/security/util/*.class
 src/jdk/src/share/classes/com/sun/crypto/provider/*.class
-src/jdk/src/share/classes/com/sun/net/ssl/*.class
-src/jdk/src/share/classes/com/sun/net/ssl/internal/ssl/*.class
-src/jdk/src/share/classes/com/sun/net/ssl/internal/www/protocol/https/*.class
 src/jdk/src/share/classes/com/sun/security/auth/*.class
 src/jdk/src/share/classes/com/sun/security/auth/callback/*.class
 src/jdk/src/share/classes/com/sun/security/auth/login/*.class
@@ -887,8 +884,6 @@ src/jdk/src/share/classes/sun/security/provider/certpath/*.class
 src/jdk/src/share/classes/sun/security/provider/certpath/ldap/*.class
 src/jdk/src/share/classes/sun/security/provider/certpath/ssl/*.class
 src/jdk/src/share/classes/sun/security/rsa/*.class
-src/jdk/src/share/classes/sun/security/ssl/*.class
-src/jdk/src/share/classes/sun/security/ssl/krb5/*.class
 src/jdk/src/share/classes/sun/security/timestamp/*.class
 src/jdk/src/share/classes/sun/security/tools/*.class
 src/jdk/src/share/classes/sun/security/tools/keytool/*.class
@@ -897,6 +892,10 @@ src/jdk/src/share/classes/sun/security/validator/*.class
 src/jdk/src/share/classes/sun/security/x509/*.class
 src/jdk/src/windows/classes/sun/security/krb5/internal/tools/*.class
 src/jdk/src/windows/classes/sun/security/provider/*.class
+jsse.jar
+sunpkcs11.jar
+sunec.jar
+secmath.jar
 }
 {
 -out:IKVM.OpenJDK.Management.dll
@@ -1088,21 +1087,12 @@ src/jdk/src/share/classes/sun/print/*.class
 src/jdk/src/windows/classes/sun/print/*.class
 }
 {
--out:IKVM.OpenJDK.Nashorn.dll
-nashorn.jar
-}
-{
 -out:IKVM.OpenJDK.Localedata.dll
 localedata.jar
 }
 {
 -out:IKVM.OpenJDK.Cldrdata.dll
 cldrdata.jar
-}
-#IKVM.NET Next-Generation Crypto
-{
--out:IKVM.OpenJDK.BouncyCastle.dll
-IKVM.OpenJDK.BouncyCastle.jar
 }
 {
 -out:IKVM.OpenJDK.Unidentified.dll
