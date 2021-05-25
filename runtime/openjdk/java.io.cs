@@ -59,6 +59,7 @@ public static class Java_java_io_Console
 	private const int STD_INPUT_HANDLE = -10;
 	private const int ENABLE_ECHO_INPUT = 0x0004;
 
+	[SecuritySafeCritical]
 	[DllImport("kernel32")]
 	private static extern IntPtr GetStdHandle(int nStdHandle);
 
@@ -68,6 +69,7 @@ public static class Java_java_io_Console
 	[DllImport("kernel32")]
 	private static extern int SetConsoleMode(IntPtr hConsoleHandle, int dwMode);
 
+	[SecuritySafeCritical]
 	public static bool echo(bool on)
 	{
 #if !FIRST_PASS

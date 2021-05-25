@@ -32,6 +32,7 @@ using IKVM.Runtime;
 using IKVM.Internal;
 using AssemblyClassLoader_ = IKVM.Internal.AssemblyClassLoader;
 using jlClass = java.lang.Class;
+using System.Security;
 #if !FIRST_PASS
 using NegativeArraySizeException = java.lang.NegativeArraySizeException;
 using IllegalArgumentException = java.lang.IllegalArgumentException;
@@ -149,7 +150,8 @@ namespace IKVM.NativeCode.java.lang
 			}
 			return null;
 		}
-
+		
+		[SecuritySafeCritical]
 		private static bool IsWindowsConsole(bool stdout)
 		{
 			if (Environment.OSVersion.Platform != PlatformID.Win32NT)
@@ -184,6 +186,7 @@ namespace IKVM.NativeCode.java.lang
 		[DllImport("kernel32")]
 		private static extern int GetFileType(IntPtr hFile);
 
+		[SecuritySafeCritical]
 		[DllImport("kernel32")]
 		private static extern IntPtr GetStdHandle(int nStdHandle);
 	}
