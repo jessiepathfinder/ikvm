@@ -15,6 +15,9 @@ using System.Threading;
 
 namespace jessielesbian.IKVM
 {
+	public sealed class ListOfObjects : List<object>, System.Collections.IList{
+		
+	}
 	public class SelfHashingInteger{
 		public readonly int val;
 		public SelfHashingInteger(int any){
