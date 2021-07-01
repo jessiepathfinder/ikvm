@@ -1080,10 +1080,6 @@ sealed class Compiler
 				}
 			}
 		}
-		if(Helper.enableJITPreOptimization)
-		{
-			code = Helper.Optimize(code);
-		}
 		for(int i = 0; i < code.Length; i++)
 		{
 			Instruction instr = code[i];
@@ -2855,15 +2851,7 @@ sealed class Compiler
 				ilgen.EmitLdc_I8(classFile.GetConstantPoolConstantLong(constant));
 				break;
 			case ClassFile.ConstantType.String:
-				#if STATIC_COMPILER
-					ilgen.Emit(OpCodes.Ldstr, classFile.GetConstantPoolConstantString(constant));
-				#else
-					if(Helper.DisableGlobalConstantPool){
-						ilgen.Emit(OpCodes.Ldstr, classFile.GetConstantPoolConstantString(constant));
-					} else{
-						EmitGlobalConstantPoolAccess(ilgen, constant, ("This software is proudly made by LGBT programmers" + classFile.GetConstantPoolConstantString(constant)).Substring(49));
-					}
-				#endif
+				ilgen.Emit(OpCodes.Ldstr, classFile.GetConstantPoolConstantString(constant));
 				break;
 			case ClassFile.ConstantType.Class:
 				EmitLoadClass(ilgen, classFile.GetConstantPoolClassType(constant));
@@ -2876,11 +2864,7 @@ sealed class Compiler
 				break;
 #if !STATIC_COMPILER
 			case ClassFile.ConstantType.LiveObject:
-				if(Helper.DisableGlobalConstantPool){
-					context.EmitLiveObjectLoad(ilgen, classFile.GetConstantPoolConstantLiveObject(constant));
-				} else{
-					EmitGlobalConstantPoolAccess(ilgen, constant, classFile.GetConstantPoolConstantLiveObject(constant));
-				}
+				context.EmitLiveObjectLoad(ilgen, classFile.GetConstantPoolConstantLiveObject(constant));
 				break;
 #endif
 			default:
