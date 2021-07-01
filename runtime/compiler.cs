@@ -2872,18 +2872,6 @@ sealed class Compiler
 		}
 
 	}
-	private static int GetGlobalConstantPoolIndexerAtomic(string index){
-		return Interlocked.Increment(ref Helper.GlobalConstantPoolCounter);
-	}
-	private void EmitGlobalConstantPoolAccess(CodeEmitter ilgen, int constant, object obj){
-		#if !STATIC_COMPILER
-		string index = clazzname + "@" + constant.ToString();
-		int GlobalConstantIndex = Helper.GlobalConstantPoolIndexer.GetOrAdd(index, GetGlobalConstantPoolIndexerAtomic);
-		Helper.GlobalConstantPool.TryAdd(new SelfHashingInteger(GlobalConstantIndex), obj);
-		ilgen.EmitLdc_I4(GlobalConstantIndex);
-		ilGenerator.Emit(OpCodes.Call, Helper.GetGlobalConstantPoolItemReflected);
-		#endif
-	}
 	private void EmitDynamicCast(TypeWrapper tw)
 	{
 		Debug.Assert(tw.IsUnloadable);
