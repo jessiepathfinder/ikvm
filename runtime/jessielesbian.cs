@@ -32,12 +32,7 @@ namespace jessielesbian.IKVM
 			Array array = new object[0];
 			ArrayLoad = new Func<int, object>(array.GetValue).Method;
 			ArrayStore = new Action<object, int>(array.SetValue).Method;
-			GlobalConstantPoolIndexer = new ConcurrentDictionary<string, int>();
-			GlobalConstantPool = new ConcurrentDictionary<SelfHashingInteger, object>();
-			Type[] TypeArray = new Type[1];
-			TypeArray[0] = typeof(int);
-			GetGlobalConstantPoolItemReflected = typeof(Helper).GetMethod("GetGlobalConstantPoolItem", TypeArray);
-			TypeArray = new Type[2];
+			Type[] TypeArray = new Type[2];
 			TypeArray[0] = typeof(object);
 			TypeArray[1] = typeof(object);
 			ObjectCheckRefEqual = typeof(object).GetMethod("ReferenceEquals", TypeArray);
@@ -48,7 +43,6 @@ namespace jessielesbian.IKVM
 		public static AssemblyBuilder FirstDynamicAssembly = null;
 		public static bool UseSingleDynamicAssembly = false;
 		public static bool DisableGlobalConstantPool = false;
-		public static readonly MethodInfo GetGlobalConstantPoolItemReflected;
 		public static readonly MethodInfo ObjectCheckRefEqual;
 		public static bool TraceMeths = false;
 		public static int optpasses = 0;
