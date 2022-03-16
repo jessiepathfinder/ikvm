@@ -30,13 +30,14 @@ using Type = IKVM.Reflection.Type;
 #else
 using System.Reflection;
 using System.Reflection.Emit;
+using System.Threading;
+using System.Collections.Concurrent;
 #endif
 using System.Diagnostics;
 using System.Diagnostics.SymbolStore;
 using IKVM.Attributes;
 using IKVM.Internal;
 using jessielesbian.IKVM;
-using System.Threading;
 
 using ExceptionTableEntry = IKVM.Internal.ClassFile.Method.ExceptionTableEntry;
 using LocalVariableTableEntry = IKVM.Internal.ClassFile.Method.LocalVariableTableEntry;
@@ -330,7 +331,34 @@ sealed class Compiler
 		getClassFromTypeHandle.Link();
 		getClassFromTypeHandle2 = ClassLoaderWrapper.LoadClassCritical("ikvm.runtime.Util").GetMethodWrapper("getClassFromTypeHandle", "(Lcli.System.RuntimeTypeHandle;I)Ljava.lang.Class;", false);
 		getClassFromTypeHandle2.Link();
+
+	#if !STATIC_COMPILER
+		for(int i = 0; i < Environment.ProcessorCount; i++){
+			new Thread(parallelCompile).Start();
+		}
+		
+		#endif
 	}
+
+#if !STATIC_COMPILER
+	private static void parallelCompile(){
+		while(true){
+			ConcurrentCompileJob result;
+			if (concurrentCompileJobs.TryDequeue(out result)){
+				try{
+					Compile2(result.context, result.host, result.clazz, result.mw, result.classFile, result.m, result.ilGenerator);
+					result.sync.Set();
+				} catch (ThreadAbortException){
+					return;
+				} catch(Exception e){
+					result.error = e;
+				}
+			} else{
+				Thread.Sleep(1);
+			}
+		}
+	}
+	#endif
 
 	private Compiler(DynamicTypeWrapper.FinishContext context, TypeWrapper host, DynamicTypeWrapper clazz, MethodWrapper mw, ClassFile classFile, ClassFile.Method m, CodeEmitter ilGenerator, ClassLoaderWrapper classLoader)
 	{
@@ -731,8 +759,48 @@ sealed class Compiler
 			}
 		}
 	}
-
+#if STATIC_COMPILER
 	internal static void Compile(DynamicTypeWrapper.FinishContext context, TypeWrapper host, DynamicTypeWrapper clazz, MethodWrapper mw, ClassFile classFile, ClassFile.Method m, CodeEmitter ilGenerator, ref bool nonleaf)
+#else
+	private sealed class ConcurrentCompileJob{
+		public readonly DynamicTypeWrapper.FinishContext context;
+		public readonly TypeWrapper host;
+		public readonly DynamicTypeWrapper clazz;
+		public readonly MethodWrapper mw;
+		public readonly ClassFile classFile;
+		public readonly ClassFile.Method m;
+		public readonly CodeEmitter ilGenerator;
+		public readonly ManualResetEventSlim sync;
+		public Exception error = null;
+
+		public ConcurrentCompileJob(DynamicTypeWrapper.FinishContext context, TypeWrapper host, DynamicTypeWrapper clazz, MethodWrapper mw, ClassFile classFile, ClassFile.Method m, CodeEmitter ilGenerator, ManualResetEventSlim sync)
+		{
+			this.context = context;
+			this.host = host;
+			this.clazz = clazz;
+			this.mw = mw;
+			this.classFile = classFile;
+			this.m = m;
+			this.ilGenerator = ilGenerator;
+			this.sync = sync;
+		}
+	}
+
+	private static readonly ConcurrentQueue<ConcurrentCompileJob> concurrentCompileJobs = new ConcurrentQueue<ConcurrentCompileJob>();
+
+	internal static void Compile(DynamicTypeWrapper.FinishContext context, TypeWrapper host, DynamicTypeWrapper clazz, MethodWrapper mw, ClassFile classFile, ClassFile.Method m, CodeEmitter ilGenerator, ref bool nonleaf){
+		nonleaf = false;
+		ManualResetEventSlim sync = new ManualResetEventSlim();
+		ConcurrentCompileJob concurrentCompileJob = new ConcurrentCompileJob(context, host, clazz, mw, classFile, m, ilGenerator, sync);
+		concurrentCompileJobs.Enqueue(concurrentCompileJob);
+		sync.Wait();
+		sync.Dispose();
+		if(concurrentCompileJob.error != null){
+			throw concurrentCompileJob.error;
+		}
+	}
+	private static void Compile2(DynamicTypeWrapper.FinishContext context, TypeWrapper host, DynamicTypeWrapper clazz, MethodWrapper mw, ClassFile classFile, ClassFile.Method m, CodeEmitter ilGenerator)
+#endif
 	{
 		string clazzname = classFile.Name;
 		string methname = m.Name;
