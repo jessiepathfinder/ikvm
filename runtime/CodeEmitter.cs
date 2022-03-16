@@ -36,6 +36,7 @@ using System.Reflection.Emit;
 using System.Runtime.InteropServices;
 using System.Diagnostics.SymbolStore;
 using System.Diagnostics;
+using System.Collections.Concurrent;
 using jessielesbian.IKVM;
 
 namespace IKVM.Internal
@@ -115,7 +116,7 @@ namespace IKVM.Internal
 		private ILGenerator ilgen_real;
 #if !STATIC_COMPILER
 		private bool inFinally;
-		private Stack<bool> exceptionStack = new Stack<bool>();
+		private ConcurrentStack<bool> exceptionStack = new ConcurrentStack<bool>();
 #endif
 		private IKVM.Attributes.LineNumberTableAttribute.LineNumberWriter linenums;
 		private CodeEmitterLocal[] tempLocals = new CodeEmitterLocal[32];
@@ -2720,7 +2721,7 @@ namespace IKVM.Internal
 			EmitPseudoOpCode(CodeType.EndExceptionBlock, null);
 #else
 			EmitPseudoOpCode(CodeType.EndExceptionBlock, inFinally ? CodeTypeFlags.EndFaultOrFinally : CodeTypeFlags.None);
-			inFinally = exceptionStack.Pop();
+			exceptionStack.TryPop(out inFinally);
 #endif
 		}
 
