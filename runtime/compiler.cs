@@ -341,6 +341,7 @@ sealed class Compiler
 	}
 
 #if !STATIC_COMPILER
+	private static readonly AutoResetEvent autoResetEvent = new AutoResetEvent(false);
 	private static void parallelCompile(){
 		while(true){
 			ConcurrentCompileJob result;
@@ -354,7 +355,7 @@ sealed class Compiler
 					result.error = e;
 				}
 			} else{
-				Thread.Sleep(1);
+				autoResetEvent.WaitOne();
 			}
 		}
 	}
@@ -793,6 +794,7 @@ sealed class Compiler
 		ManualResetEventSlim sync = new ManualResetEventSlim();
 		ConcurrentCompileJob concurrentCompileJob = new ConcurrentCompileJob(context, host, clazz, mw, classFile, m, ilGenerator, sync);
 		concurrentCompileJobs.Enqueue(concurrentCompileJob);
+		autoResetEvent.Set();
 		sync.Wait();
 		sync.Dispose();
 		if(concurrentCompileJob.error != null){
