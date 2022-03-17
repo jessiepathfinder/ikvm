@@ -332,16 +332,19 @@ sealed class Compiler
 		getClassFromTypeHandle2 = ClassLoaderWrapper.LoadClassCritical("ikvm.runtime.Util").GetMethodWrapper("getClassFromTypeHandle", "(Lcli.System.RuntimeTypeHandle;I)Ljava.lang.Class;", false);
 		getClassFromTypeHandle2.Link();
 
-	#if !STATIC_COMPILER
-		for(int i = 0; i < Environment.ProcessorCount; i++){
-			new Thread(parallelCompile).Start();
+#if !STATIC_COMPILER
+		int limit = Environment.ProcessorCount;
+		for (int i = 0; i < limit; i++){
+			Thread thread = new Thread(parallelCompile);
+			thread.Name = "IKVM.NET Advanced-Technology Dynamic Compilation Thread #" + i.ToString();
+			thread.Start();
 		}
 		
-		#endif
+#endif
 	}
 
 #if !STATIC_COMPILER
-	private static readonly AutoResetEvent autoResetEvent = new AutoResetEvent(false);
+	private static readonly ManualResetEventSlim manualResetEventSlim = new ManualResetEventSlim();
 	private static void parallelCompile(){
 		while(true){
 			ConcurrentCompileJob result;
@@ -355,7 +358,12 @@ sealed class Compiler
 					result.error = e;
 				}
 			} else{
-				autoResetEvent.WaitOne();
+				lock(manualResetEventSlim){
+					if(manualResetEventSlim.IsSet && concurrentCompileJobs.IsEmpty){
+						manualResetEventSlim.Reset();
+					}
+				}
+				manualResetEventSlim.Wait();
 			}
 		}
 	}
@@ -793,8 +801,11 @@ sealed class Compiler
 		nonleaf = false;
 		ManualResetEventSlim sync = new ManualResetEventSlim();
 		ConcurrentCompileJob concurrentCompileJob = new ConcurrentCompileJob(context, host, clazz, mw, classFile, m, ilGenerator, sync);
-		concurrentCompileJobs.Enqueue(concurrentCompileJob);
-		autoResetEvent.Set();
+		lock(manualResetEventSlim){
+			concurrentCompileJobs.Enqueue(concurrentCompileJob);
+			manualResetEventSlim.Set();
+		}
+		
 		sync.Wait();
 		sync.Dispose();
 		if(concurrentCompileJob.error != null){
