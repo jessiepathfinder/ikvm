@@ -136,7 +136,6 @@
             <arg value="-nojni" />
             <!-- we need optimizations since Jessie Lesbian had waiting difficulties. -->
             <arg value="-extremeoptimize" />
-            <arg value="-preoptimize" />
             <arg value="-removeassertions" />
             <arg value="-compressresources" />
             <arg value="-opt:fields" />
