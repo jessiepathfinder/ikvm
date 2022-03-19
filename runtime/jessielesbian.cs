@@ -75,11 +75,7 @@ namespace jessielesbian.IKVM
 				}
 			}
 		}
-#if STATIC_COMPILER
-		public static bool useMultithreadedCompilation = true;
-#else
 		public static bool useMultithreadedCompilation = false;
-#endif
 		static Helper()
 		{
 			Array array = new object[0];
@@ -89,17 +85,23 @@ namespace jessielesbian.IKVM
 			TypeArray[0] = typeof(object);
 			TypeArray[1] = typeof(object);
 			ObjectCheckRefEqual = typeof(object).GetMethod("ReferenceEquals", TypeArray);
+#if !STATIC_COMPILER
 			int limit = Environment.ProcessorCount;
 			for (int i = 0; i < limit; i++)
 			{
 				Thread thread = new Thread(ParallelExecThread);
+				thread.Priority = ThreadPriority.Highest;
 				thread.IsBackground = true;
 				thread.Name = "IKVM.NET Worker Thread #" + i.ToString();
 				thread.Start();
 			}
+#endif
 		}
 		internal static object Dowork(ParallelJob parallelJob)
 		{
+#if STATIC_COMPILER
+			throw new InvalidOperationException();
+#else
 			lock (manualResetEventSlim)
 			{
 				parallelJobs.Enqueue(parallelJob);
@@ -113,7 +115,7 @@ namespace jessielesbian.IKVM
 			} else{
 				throw parallelJob.Error;
 			}
-
+#endif
 		}
 	}
 	internal abstract class ParallelJob

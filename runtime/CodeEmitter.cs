@@ -2392,17 +2392,15 @@ namespace IKVM.Internal
 		}
 		internal void DoEmit()
 		{
-#if STATIC_COMPILER
-			bool useParallelEmit = false;
-#else
-			bool useParallelEmit = Helper.useMultithreadedCompilation;
-#endif
-
-			if (useParallelEmit)
+			if (Helper.useMultithreadedCompilation)
 			{
 				Helper.Dowork(new ParallelEmit(this));
 			} else{
+#if STATIC_COMPILER
+				Optimize();
+#else
 				Helper.Dowork(new ParallelOptimize(this));
+#endif
 				DoEmit2();
 			}
 			
