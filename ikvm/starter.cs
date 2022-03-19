@@ -265,10 +265,6 @@ public static class Starter
 				{
 					noglobbing = true;
 				}
-				else if (arg == "-XuseLegacyConstantPool")
-				{
-					Helper.DisableGlobalConstantPool = true;
-				}
 				else if (arg == "-XX:+AllowNonVirtualCalls")
 				{
 					IKVM.Internal.Starter.AllowNonVirtualCalls = true;
@@ -294,14 +290,14 @@ public static class Starter
 				}
 				else if(arg.StartsWith("-Xoptimize:")){
 					try{
-						Helper.optpasses = (int)Convert.ToUInt32(arg.Replace("-Xoptimize:", ""));
+						Helper.optpasses = (int)Convert.ToUInt32(arg.Substring(11));
 					} catch{
 						Console.Error.WriteLine("SORRY, IKVM.NET experimental optimizations disabled, reason: negative or invalid number of optimization passes.");
 					}
 				}
 				else if(arg.StartsWith("-Xfilecache:")){
 					try{
-						Helper.FileIOCacheSize = (int)Convert.ToUInt32(arg.Replace("-Xfilecache:", ""));
+						Helper.FileIOCacheSize = (int)Convert.ToUInt32(arg.Substring(12));
 					} catch{
 						Console.Error.WriteLine("SORRY, IKVM.NET file caching disabled, reason: invalid or negative cache size.");
 					}
@@ -310,13 +306,9 @@ public static class Starter
 				{
 					Helper.extremeOptimizations = true;
 				}
-				else if(arg == "-Xpreoptimize")
+				else if(arg == "-Xmtcompile")
 				{
-					Helper.enableJITPreOptimization = true;
-				}
-				else if(arg == "-Xminecraft")
-				{
-					minecraft = true;
+					Helper.useMultithreadedCompilation = true;
 				}
 				else
 				{
@@ -469,14 +461,9 @@ public static class Starter
 		Console.Error.WriteLine("    -Xverify          Enable strict class file verification");
 		Console.Error.WriteLine("    -Xoptimize:n      Enable IKVM.NET experimental optimizations and use N passes of optimization");
 		Console.Error.WriteLine("    -Xextremeoptimize Enable extreme usage of IKVM.NET experimental optimizations");
-		Console.Error.WriteLine("    -Xpreoptimize     Enable precompilation optimizations");
+		Console.Error.WriteLine("    -Xmtcompile       Enable IKVM.NET Multithreaded Dynamic Compilation (may break some applications)");
 		Console.Error.WriteLine("    -Xfilecache:size  Set file cache size in bytes (zero to disable)");
 		Console.Error.WriteLine("                      NOTE: This is cache size per FileInputStream/FileOutputStream, not global cache size!");
-		Console.Error.WriteLine("    -XuseLegacyConstantPool");
-		Console.Error.WriteLine("                      Use the legacy constant pool instead of the global constant pool");
-		Console.Error.WriteLine("                      NOTE: This increases performance, but may cause some applications to misbehave!");
-		Console.Error.WriteLine("    -Xminecraft       Enable certain Java standard augmentations needed to run Minecraft 1.12 and above");
-		Console.Error.WriteLine("                      WARNING: using this option on other applications can create issues");
 		Console.Error.WriteLine();
 		Console.Error.WriteLine("The -X options are non-standard and subject to change without notice.");
 		Console.Error.WriteLine();

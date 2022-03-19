@@ -2311,10 +2311,13 @@ namespace IKVM.Internal
 			{
 				CheckInvariants();
 				MoveLocalDeclarationToBeginScope();
-				List<int> prevcodes = new List<int>(code.Capacity);
-				for (int i = 0; (i < Helper.optpasses) || (!prevcodes.Contains(code.GetHashCode()) && Helper.extremeOptimizations); i++)
+				bool xopt = Helper.extremeOptimizations;
+				int prevsize = int.MaxValue;
+				for (int i = 0; (i < Helper.optpasses) || (code.Count != prevsize && xopt); i++)
 				{
-					prevcodes.Add(code.GetHashCode());
+					if(xopt){
+						prevsize = code.Count;
+					}
 					RemoveJumpNext();
 					CheckInvariants();
 					ChaseBranches();
@@ -2344,9 +2347,37 @@ namespace IKVM.Internal
 			OptimizeEncodings();
 			OptimizeBranchSizes();
 		}
-		internal void DoEmit()
+
+		private sealed class ParallelEmit : ParallelJob
 		{
-			Optimize();
+			private readonly CodeEmitter codeEmitter;
+			public ParallelEmit(CodeEmitter c){
+				codeEmitter = c;
+			}
+
+			protected override object Execute2()
+			{
+				codeEmitter.Optimize();
+				codeEmitter.DoEmit2();
+				return null;
+			}
+		}
+		private sealed class ParallelOptimize : ParallelJob
+		{
+			private readonly CodeEmitter codeEmitter;
+			public ParallelOptimize(CodeEmitter c)
+			{
+				codeEmitter = c;
+			}
+
+			protected override object Execute2()
+			{
+				codeEmitter.Optimize();
+				return null;
+			}
+		}
+		private void DoEmit2()
+		{
 			int ilOffset = 0;
 			int lineNumber = -1;
 			for (int i = 0; i < code.Count; i++)
@@ -2358,6 +2389,23 @@ namespace IKVM.Internal
 				ilOffset += code[i].Size;
 #endif
 			}
+		}
+		internal void DoEmit()
+		{
+#if STATIC_COMPILER
+			bool useParallelEmit = false;
+#else
+			bool useParallelEmit = Helper.useMultithreadedCompilation;
+#endif
+
+			if (useParallelEmit)
+			{
+				Helper.Dowork(new ParallelEmit(this));
+			} else{
+				Helper.Dowork(new ParallelOptimize(this));
+				DoEmit2();
+			}
+			
 		}
 
 		internal void DumpMethod()

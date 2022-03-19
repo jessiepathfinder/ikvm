@@ -490,7 +490,6 @@ sealed class IkvmcCompiler
 		Console.Error.WriteLine("                               of initializer methods");
 		Console.Error.WriteLine("-optimize:n                    Enable IKVM.NET experimental optimizations and use N passes of optimization");
 		Console.Error.WriteLine("-extremeoptimize               Enable extreme usage of IKVM.NET experimental optimizations optimizations");
-		Console.Error.WriteLine("-preoptimize                   Enable precompilation optimizations");
 		Console.Error.WriteLine();
 		Console.Error.WriteLine("                      - ERRORS AND WARNINGS -");
 		Console.Error.WriteLine("-nowarn:<warning[:key]>        Suppress specified warnings");
@@ -1030,10 +1029,6 @@ sealed class IkvmcCompiler
 				else if(s == "-extremeoptimize")
 				{
 					Helper.extremeOptimizations = true;
-				}
-				else if(s == "-preoptimize")
-				{
-					Helper.enableJITPreOptimization = true;
 				}
 				else
 				{
