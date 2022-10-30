@@ -5,14 +5,14 @@ echo cleaning...
 call clean.bat
 echo setting variables...
 ::DEFAULT IKVM.NET version, since 8.7.0.0 had a HUGE number of closed-source previews
-if '%IKVM_VERSION%' equ '^%IKVM_VERSION^%' set IKVM_VERSION=8.7.0.0
-if '%IKVM_DOTNET_BUILD_ARGS%' equ '^%IKVM_DOTNET_BUILD_ARGS^%' set IKVM_DOTNET_BUILD_ARGS=
+if not defined IKVM_VERSION set IKVM_VERSION=8.7.0.0
+if not defined IKVM_DOTNET_BUILD_ARGS set IKVM_DOTNET_BUILD_ARGS=
 set IKVM_BUILD_CONFIG=-c Release
 if '%IKVM_DEBUG%' equ 'true' set IKVM_BUILD_CONFIG=-c Debug
-if '%IKVM_JAVAC_ARGS%' equ '^%IKVM_JAVAC_ARGS^%' set IKVM_JAVAC_ARGS=-J-Xmx1536M -source 8 -target 8
+if not defined IKVM_JAVAC_ARGS set IKVM_JAVAC_ARGS=-J-Xmx1536M -source 8 -target 8
 set IKVM_JAVAC_DEBUG=-g
 if '%IKVM_DEBUG%' neq 'true' set IKVM_JAVAC_DEBUG=-g:none
-if '%IKVM_JAVAC%' equ '^%IKVM_JAVAC^%' set IKVM_JAVAC=javac
+if not defined IKVM_JAVAC set IKVM_JAVAC=javac
 
 echo generating info files...
 call set_version.bat CommonAssemblyInfo.cs.in
