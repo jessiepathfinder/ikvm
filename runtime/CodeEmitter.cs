@@ -2299,7 +2299,8 @@ namespace IKVM.Internal
 				}
 			}
 		}
-		private void Optimize(){
+		internal void DoEmit()
+		{
 			if(optimized){
 				return;
 			}
@@ -2346,38 +2347,6 @@ namespace IKVM.Internal
 			}
 			OptimizeEncodings();
 			OptimizeBranchSizes();
-		}
-
-		private sealed class ParallelEmit : ParallelJob
-		{
-			private readonly CodeEmitter codeEmitter;
-			public ParallelEmit(CodeEmitter c){
-				codeEmitter = c;
-			}
-
-			protected override object Execute2()
-			{
-				codeEmitter.Optimize();
-				codeEmitter.DoEmit2();
-				return null;
-			}
-		}
-		private sealed class ParallelOptimize : ParallelJob
-		{
-			private readonly CodeEmitter codeEmitter;
-			public ParallelOptimize(CodeEmitter c)
-			{
-				codeEmitter = c;
-			}
-
-			protected override object Execute2()
-			{
-				codeEmitter.Optimize();
-				return null;
-			}
-		}
-		private void DoEmit2()
-		{
 			int ilOffset = 0;
 			int lineNumber = -1;
 			for (int i = 0; i < code.Count; i++)
@@ -2389,21 +2358,6 @@ namespace IKVM.Internal
 				ilOffset += code[i].Size;
 #endif
 			}
-		}
-		internal void DoEmit()
-		{
-			if (Helper.useMultithreadedCompilation)
-			{
-				Helper.Dowork(new ParallelEmit(this));
-			} else{
-#if STATIC_COMPILER
-				Optimize();
-#else
-				Helper.Dowork(new ParallelOptimize(this));
-#endif
-				DoEmit2();
-			}
-			
 		}
 
 		internal void DumpMethod()

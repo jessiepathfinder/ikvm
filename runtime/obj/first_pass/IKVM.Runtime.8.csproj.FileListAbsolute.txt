@@ -1,0 +1,7 @@
+C:\Users\jessi\Desktop\IKVM.NewBuild\bin\IKVM.Runtime.dll
+C:\Users\jessi\Desktop\IKVM.NewBuild\bin\IKVM.Runtime.pdb
+C:\Users\jessi\Desktop\IKVM.NewBuild\runtime\obj\first_pass\IKVM.Runtime.8.csproj.AssemblyReference.cache
+C:\Users\jessi\Desktop\IKVM.NewBuild\runtime\obj\first_pass\IKVM.Runtime.8.csproj.CoreCompileInputs.cache
+C:\Users\jessi\Desktop\IKVM.NewBuild\runtime\obj\first_pass\IKVM.Runtime.8.csproj.CopyComplete
+C:\Users\jessi\Desktop\IKVM.NewBuild\runtime\obj\first_pass\IKVM.Runtime.dll
+C:\Users\jessi\Desktop\IKVM.NewBuild\runtime\obj\first_pass\IKVM.Runtime.pdb

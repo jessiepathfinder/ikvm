@@ -732,43 +732,9 @@ sealed class Compiler
 			}
 		}
 	}
-
-	private sealed class ConcurrentCompileJob : ParallelJob
+	internal static void Compile(DynamicTypeWrapper.FinishContext context, TypeWrapper host, DynamicTypeWrapper clazz, MethodWrapper mw, ClassFile classFile, ClassFile.Method m, CodeEmitter ilGenerator, ref bool nonleaf)
 	{
-		public readonly DynamicTypeWrapper.FinishContext context;
-		public readonly TypeWrapper host;
-		public readonly DynamicTypeWrapper clazz;
-		public readonly MethodWrapper mw;
-		public readonly ClassFile classFile;
-		public readonly ClassFile.Method m;
-		public readonly CodeEmitter ilGenerator;
-
-		public ConcurrentCompileJob(DynamicTypeWrapper.FinishContext context, TypeWrapper host, DynamicTypeWrapper clazz, MethodWrapper mw, ClassFile classFile, ClassFile.Method m, CodeEmitter ilGenerator)
-		{
-			this.context = context;
-			this.host = host;
-			this.clazz = clazz;
-			this.mw = mw;
-			this.classFile = classFile;
-			this.m = m;
-			this.ilGenerator = ilGenerator;
-		}
-		protected override object Execute2()
-		{
-			Compile2(context, host, clazz, mw, classFile, m, ilGenerator);
-			return null;
-		}
-	}
-	internal static void Compile(DynamicTypeWrapper.FinishContext context, TypeWrapper host, DynamicTypeWrapper clazz, MethodWrapper mw, ClassFile classFile, ClassFile.Method m, CodeEmitter ilGenerator, ref bool nonleaf){
 		nonleaf = false;
-		if(Helper.useMultithreadedCompilation){
-			Helper.Dowork(new ConcurrentCompileJob(context, host, clazz, mw, classFile, m, ilGenerator));
-		} else{
-			Compile2(context, host, clazz, mw, classFile, m, ilGenerator);
-		}
-	}
-	private static void Compile2(DynamicTypeWrapper.FinishContext context, TypeWrapper host, DynamicTypeWrapper clazz, MethodWrapper mw, ClassFile classFile, ClassFile.Method m, CodeEmitter ilGenerator)
-	{
 		string clazzname = classFile.Name;
 		string methname = m.Name;
 		ClassLoaderWrapper classLoader = clazz.GetClassLoader();

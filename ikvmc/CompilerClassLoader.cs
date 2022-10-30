@@ -2544,7 +2544,7 @@ namespace IKVM.Internal
 					runtimeAssembly = Path.Combine(typeof(CompilerClassLoader).Assembly.Location, ".." + Path.DirectorySeparatorChar + "IKVM.Runtime.dll");
 				}
 				StaticCompiler.runtimeAssembly = StaticCompiler.LoadFile(runtimeAssembly);
-				StaticCompiler.runtimeJniAssembly = StaticCompiler.LoadFile(Path.Combine(StaticCompiler.runtimeAssembly.Location, ".." + Path.DirectorySeparatorChar + "IKVM.Runtime.JNI.dll"));
+				StaticCompiler.runtimeJniAssembly = StaticCompiler.LoadFile(runtimeAssembly.Substring(0, runtimeAssembly.Length - 3) + "JNI.dll");
 			}
 			catch(FileNotFoundException)
 			{

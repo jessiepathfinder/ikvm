@@ -1030,6 +1030,11 @@ sealed class IkvmcCompiler
 				{
 					Helper.extremeOptimizations = true;
 				}
+				else if(s == "-maintainunsafeintrinsics")
+				{
+					
+					Helper.disableUnsafeIntrinsics = false;
+				}
 				else
 				{
 					throw new FatalCompilerErrorException(Message.UnrecognizedOption, s);

@@ -149,6 +149,7 @@
 				<fail message="../openjdk/vfs.zip is missing. Make sure to build ikvm/openjdk first." />
 			</if>
 		</if>
+		<copy file="../stubs/IKVM.Runtime.JNI.dll" todir="../bin" />	
 		<csc noconfig="true" target="library" output="IKVM.Runtime.dll" define="${defs}" optimize="true" unsafe="false" rebuild="true" nostdlib="true">
 			<arg unless="${string::starts-with(framework::get-target-framework(), 'mono')}" value="/baseaddress:0x55000000" />
 			<nowarn>

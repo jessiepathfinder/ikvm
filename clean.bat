@@ -1,7 +1,6 @@
 @echo off
-title CLEAN Jessie Lesbian's cute-looking IKVM.NET fork
-echo cleaning Jessie Lesbian's cute-looking IKVM.NET fork
 cd %~dp0
-"%cd%\nant\nant.exe" clean
-pause
-exit
+echo cleaning class files...
+FOR /R %%F IN (*.class) DO DEL %%F
+echo cleaning other files...
+FOR /F "usebackq delims=" %%A IN (".gitignore") DO DEL /F /Q /S "%%A" >nul 2>nul

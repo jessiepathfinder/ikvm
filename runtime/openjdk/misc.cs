@@ -30,7 +30,70 @@ using System.Security;
 using System.Security.Cryptography;
 using System.Security.Principal;
 using IKVM.Internal;
+using System.Collections.Concurrent;
 
+#if !FIRST_PASS
+using java.util.zip;
+#endif
+
+public static class Java_com_sun_nio_zipfs_ZipFileSystem
+{
+	private static readonly ConcurrentBag<byte[]> recycler = new ConcurrentBag<byte[]>();
+	public static string tryRecache(string file){
+		//Apply zip shadowing to vfs stubs
+		if (file.StartsWith("C:\\.virtual-ikvm-home\\assembly\\") || file.StartsWith("/.virtual-ikvm-home/assembly/")){
+#if FIRST_PASS
+			return null;
+#else
+			ZipInputStream zipInputStream = new ZipInputStream(new java.io.FileInputStream(file));
+			string newname = Path.GetRandomFileName();
+			ZipOutputStream zipOutputStream = new ZipOutputStream(new java.io.FileOutputStream(newname, false));
+			zipOutputStream.setLevel(9);
+			byte[] buffer = null;
+			try{
+			start:
+				ZipEntry zipEntry = zipInputStream.getNextEntry();
+				if (ReferenceEquals(zipEntry, null))
+				{
+					zipInputStream.close();
+					zipOutputStream.flush();
+					zipOutputStream.close();
+				}
+				else
+				{
+					zipOutputStream.putNextEntry(new ZipEntry(zipEntry.name));
+					if(zipEntry.isDirectory()){
+						goto start;
+					}
+					if(ReferenceEquals(buffer, null)){
+						if (!recycler.TryTake(out buffer))
+						{
+							buffer = new byte[65536];
+						}
+					}
+				copy:
+					int blksize = zipInputStream.read(buffer, 0, 65536);
+					if(blksize > -1){
+						if(blksize > 0){
+							zipOutputStream.write(buffer, 0, blksize);
+						}
+						goto copy;
+					} else{
+						goto start;
+					}
+				}
+				return newname;
+			} finally{
+				if(!ReferenceEquals(buffer, null)){
+					recycler.Add(buffer);
+				}
+			}
+#endif
+		} else{
+			return file;
+		}
+	}
+}
 public static class Java_ikvm_runtime_Startup
 {
 	// this method is called from ikvm.runtime.Startup.exitMainThread() and from JNI's DetachCurrentThread
@@ -239,58 +302,6 @@ public static class Java_sun_net_spi_DefaultProxySelector
 	}
 }
 
-public static class Java_sun_nio_fs_NetPath
-{
-	public static string toRealPathImpl(string path)
-	{
-#if FIRST_PASS
-		return null;
-#else
-		path = java.io.DefaultFileSystem.getFileSystem().canonicalize(path);
-		if (VirtualFileSystem.IsVirtualFS(path))
-		{
-			if (VirtualFileSystem.CheckAccess(path, Java_java_io_WinNTFileSystem.ACCESS_READ))
-			{
-				return path;
-			}
-			throw new java.nio.file.NoSuchFileException(path);
-		}
-		try
-		{
-			File.GetAttributes(path);
-			return path;
-		}
-		catch (FileNotFoundException)
-		{
-			throw new java.nio.file.NoSuchFileException(path);
-		}
-		catch (DirectoryNotFoundException)
-		{
-			throw new java.nio.file.NoSuchFileException(path);
-		}
-		catch (UnauthorizedAccessException)
-		{
-			throw new java.nio.file.AccessDeniedException(path);
-		}
-		catch (SecurityException)
-		{
-			throw new java.nio.file.AccessDeniedException(path);
-		}
-		catch (ArgumentException x)
-		{
-			throw new java.nio.file.FileSystemException(path, null, x.Message);
-		}
-		catch (NotSupportedException x)
-		{
-			throw new java.nio.file.FileSystemException(path, null, x.Message);
-		}
-		catch (IOException x)
-		{
-			throw new java.nio.file.FileSystemException(path, null, x.Message);
-		}
-#endif
-	}
-}
 
 public static class Java_sun_security_provider_NativeSeedGenerator
 {
@@ -311,7 +322,6 @@ public static class Java_sun_security_provider_NativeSeedGenerator
 		}
 	}
 }
-
 public static class Java_com_sun_java_util_jar_pack_NativeUnpack
 {
 	public static void initIDs()
@@ -605,36 +615,4 @@ public static class Java_java_awt_image_SinglePixelPackedSampleModel
 public static class Java_java_awt_image_SampleModel
 {
 	public static void initIDs() { }
-}
-
-public static class Java_sun_net_ExtendedOptionsImpl
-{
-	public static void init()
-	{
-	}
-
-	public static void setFlowOption(java.io.FileDescriptor fd, object f)
-	{
-#if !FIRST_PASS
-		throw new java.lang.UnsupportedOperationException();
-#endif
-	}
-
-	public static void getFlowOption(java.io.FileDescriptor fd, object f)
-	{
-#if !FIRST_PASS
-		throw new java.lang.UnsupportedOperationException();
-#endif
-	}
-
-	public static bool flowSupported()
-	{
-		// We don't support this. Solaris only functionality.
-		return false;
-	}
-	
-	public static bool keepAliveOptionsSupported()
-	{
-		return false; //WILL IMPLEMENT IN THE FUTURE!
-	}
 }

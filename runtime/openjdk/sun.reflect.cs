@@ -33,6 +33,7 @@ using System.Runtime.Serialization;
 using System.Security;
 using IKVM.Internal;
 using IKVM.Attributes;
+using System.Threading;
 
 namespace IKVM.Internal
 {
@@ -1021,23 +1022,9 @@ public static class Java_sun_reflect_ReflectionFactory
 
 	private abstract class FieldAccessorImplBase : sun.reflect.FieldAccessor, IReflectionException
 	{
-		protected static readonly ushort inflationThreshold = 15;
 		protected readonly FieldWrapper fw;
 		protected readonly bool isFinal;
-		protected ushort numInvocations;
-
-		static FieldAccessorImplBase()
-		{
-			string str = java.lang.Props.props.getProperty("ikvm.reflect.field.inflationThreshold");
-			int value;
-			if (str != null && int.TryParse(str, out value))
-			{
-				if (value >= ushort.MinValue && value <= ushort.MaxValue)
-				{
-					inflationThreshold = (ushort)value;
-				}
-			}
-		}
+		protected volatile int numInvocations;
 
 		private FieldAccessorImplBase(FieldWrapper fw, bool isFinal)
 		{
@@ -1199,18 +1186,18 @@ public static class Java_sun_reflect_ReflectionFactory
 		{
 			protected delegate void Setter(object obj, T value, FieldAccessor<T> acc);
 			protected delegate T Getter(object obj, FieldAccessor<T> acc);
-			private static readonly Setter initialSetter = lazySet;
-			private static readonly Getter initialGetter = lazyGet;
-			protected Setter setter = initialSetter;
-			protected Getter getter = initialGetter;
+			protected volatile Setter setter;
+			protected volatile Getter getter;
 
 			internal FieldAccessor(FieldWrapper fw, bool isFinal)
 				: base(fw, isFinal)
 			{
-				if (!IsSlowPathCompatible(fw))
+				if (IsSlowPathCompatible(fw))
 				{
-					// prevent slow path
-					numInvocations = inflationThreshold;
+					getter = lazyGet;
+					setter = lazySet;
+				} else{
+					Optimize(this);
 				}
 			}
 
@@ -1235,19 +1222,19 @@ public static class Java_sun_reflect_ReflectionFactory
 			{
 				acc.lazySet(obj, value);
 			}
+			private static void Optimize2(object obj){
+				Optimize((FieldAccessor<T>) obj);
+			}
+			private static void Optimize(FieldAccessor<T> fieldAccessor){
+				//Optimizes a field accessor by dynamically generating code
+				FieldWrapper fw = fieldAccessor.fw;
+				fw.DeclaringType.RunClassInit();
+				fieldAccessor.getter = (Getter)fieldAccessor.GenerateFastGetter(typeof(Getter), typeof(T), fw);
+				fieldAccessor.setter = (Setter)fieldAccessor.GenerateFastSetter(typeof(Setter), typeof(T), fw);
+			}
 
 			private T lazyGet(object obj)
 			{
-#if !NO_REF_EMIT
-				if (numInvocations >= inflationThreshold)
-				{
-					// FXBUG it appears that a ldsfld/stsfld in a DynamicMethod doesn't trigger the class constructor
-					// and if we didn't use the slow path, we haven't yet initialized the class
-					fw.DeclaringType.RunClassInit();
-					getter = (Getter)GenerateFastGetter(typeof(Getter), typeof(T), fw);
-					return getter(obj, this);
-				}
-#endif // !NO_REF_EMIT
 				if (fw.IsStatic)
 				{
 					obj = null;
@@ -1264,13 +1251,21 @@ public static class Java_sun_reflect_ReflectionFactory
 				{
 					throw GetUnsupportedRemappedFieldException(obj);
 				}
-				if (numInvocations == 0)
+				try
 				{
-					fw.DeclaringType.RunClassInit();
-					fw.DeclaringType.Finish();
-					fw.ResolveField();
+					
+				} finally{
+					//Critical section
+					int count = Interlocked.Increment(ref numInvocations);
+					if (count == 1)
+					{
+						fw.DeclaringType.RunClassInit();
+						fw.DeclaringType.Finish();
+						fw.ResolveField();
+					} else if(count == 20){
+						ThreadPool.QueueUserWorkItem(Optimize2, this);
+					}
 				}
-				numInvocations++;
 				return (T)fw.FieldTypeWrapper.GhostUnwrap(fw.GetValue(obj));
 			}
 
@@ -1282,17 +1277,6 @@ public static class Java_sun_reflect_ReflectionFactory
 					fw.DeclaringType.RunClassInit();
 					throw FinalFieldIllegalAccessException(JavaBox(value));
 				}
-#if !NO_REF_EMIT
-				if (numInvocations >= inflationThreshold)
-				{
-					// FXBUG it appears that a ldsfld/stsfld in a DynamicMethod doesn't trigger the class constructor
-					// and if we didn't use the slow path, we haven't yet initialized the class
-					fw.DeclaringType.RunClassInit();
-					setter = (Setter)GenerateFastSetter(typeof(Setter), typeof(T), fw);
-					setter(obj, value, this);
-					return;
-				}
-#endif // !NO_REF_EMIT
 				if (fw.IsStatic)
 				{
 					obj = null;
@@ -1310,13 +1294,21 @@ public static class Java_sun_reflect_ReflectionFactory
 					throw GetUnsupportedRemappedFieldException(obj);
 				}
 				CheckValue(value);
-				if (numInvocations == 0)
+				try
 				{
-					fw.DeclaringType.RunClassInit();
-					fw.DeclaringType.Finish();
-					fw.ResolveField();
+					
+				} finally{
+					//Critical section
+					int count = Interlocked.Increment(ref numInvocations);
+					if (count == 1)
+					{
+						fw.DeclaringType.RunClassInit();
+						fw.DeclaringType.Finish();
+						fw.ResolveField();
+					} else if(count == 20){
+						ThreadPool.QueueUserWorkItem(Optimize2, this);
+					}
 				}
-				numInvocations++;
 				fw.SetValue(obj, fw.FieldTypeWrapper.GhostWrap(value));
 			}
 

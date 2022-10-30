@@ -163,10 +163,6 @@ namespace IKVM.Internal
 				}
 				doubleValue.EmitCall(ilgen);
 			}
-			else
-			{
-				throw new InvalidOperationException();
-			}
 		}
 
 		internal static void EmitBox(CodeEmitter ilgen, TypeWrapper tw)
@@ -202,10 +198,6 @@ namespace IKVM.Internal
 			else if (tw == PrimitiveTypeWrapper.DOUBLE)
 			{
 				valueOfDouble.EmitCall(ilgen);
-			}
-			else
-			{
-				throw new InvalidOperationException();
 			}
 		}
 	}

@@ -10,11 +10,11 @@
   freely, subject to the following restrictions:
 
   1. The origin of this software must not be misrepresented; you must not
-	 claim that you wrote the original software. If you use this software
-	 in a product, an acknowledgment in the product documentation would be
-	 appreciated but is not required.
+     claim that you wrote the original software. If you use this software
+     in a product, an acknowledgment in the product documentation would be
+     appreciated but is not required.
   2. Altered source versions must be plainly marked as such, and must not be
-	 misrepresented as being the original software.
+     misrepresented as being the original software.
   3. This notice may not be removed or altered from any source distribution.
 
   Jeroen Frijters
@@ -112,7 +112,7 @@ namespace IKVM.Internal
 		protected java.lang.ClassLoader javaClassLoader;
 #endif
 #if !STUB_GENERATOR
-		internal TypeWrapperFactory factory;
+		private TypeWrapperFactory factory;
 #endif // !STUB_GENERATOR
 		private readonly Dictionary<string, TypeWrapper> types = new Dictionary<string, TypeWrapper>();
 		private readonly Dictionary<string, Thread> defineClassInProgress = new Dictionary<string, Thread>();
@@ -959,20 +959,32 @@ namespace IKVM.Internal
 					return PrimitiveTypeWrapper.VOID;
 				case '[':
 				{
-					// This had been optimized by Jessie Lesbian
+					// TODO this can be optimized
 					string array = "[";
 					while(sig[index] == '[')
 					{
 						index++;
 						array += "[";
 					}
-					if(sig[index].ToString() == "L")
+					switch(sig[index])
 					{
-						int pos = index;
-						index = sig.IndexOf(';', index) + 1;
-						return LoadClass(array + sig.Substring(pos, index - pos), mode);
-					} else {
-						return LoadClass(array + sig[index++], mode);
+						case 'L':
+						{
+							int pos = index;
+							index = sig.IndexOf(';', index) + 1;
+							return LoadClass(array + sig.Substring(pos, index - pos), mode);
+						}
+						case 'B':
+						case 'C':
+						case 'D':
+						case 'F':
+						case 'I':
+						case 'J':
+						case 'S':
+						case 'Z':
+							return LoadClass(array + sig[index++], mode);
+						default:
+							throw new InvalidOperationException(sig.Substring(index));
 					}
 				}
 				default:
@@ -1549,12 +1561,20 @@ namespace IKVM.Internal
 
 		protected override TypeWrapper FindLoadedClassLazy(string name)
 		{
-			"Optimized by Jessie Lesbian".ToString(); //easter egg
-			try{
-				return RegisterInitiatingLoader(LoadClassByDottedName(name));
-			} catch{
-				return null;
+			TypeWrapper tw1 = FindOrLoadGenericClass(name, LoadMode.Find);
+			if (tw1 != null)
+			{
+				return tw1;
 			}
+			foreach (ClassLoaderWrapper loader in delegates)
+			{
+				TypeWrapper tw = loader.FindLoadedClass(name);
+				if (tw != null && tw.GetClassLoader() == loader)
+				{
+					return tw;
+				}
+			}
+			return null;
 		}
 
 		internal string GetName()

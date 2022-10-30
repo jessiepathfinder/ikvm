@@ -128,18 +128,13 @@
             <arg value="-r:System.Core.dll" unless="${SkipSystemCoreDependency}" />
             <arg value="-r:System.Xml.dll" />
             <arg value="-r:IKVM.Runtime.dll" />
-            <!-- we already know that the JNI assembly is not available, so suppress the warning -->
-            <arg value="-nowarn:110" />
             <arg value="-w4" />
-            <arg value="-warnaserror" />
-            <!-- WARNING: REMOVE BEFORE STABLE RELEASE -->
-            <arg value="-nojni" />
+			<!-- undocumented option for backward compatibility -->
+			<arg value="-maintainunsafeintrinsics" />
             <!-- we need optimizations since Jessie Lesbian had waiting difficulties. -->
-            <arg value="-extremeoptimize" />
             <arg value="-removeassertions" />
             <arg value="-compressresources" />
             <arg value="-opt:fields" />
-            <arg value="-static"/>
             <arg value="-noparameterreflection" />
             <arg value="-nostacktraceinfo"/>
             <arg value="-filealign:4096"/>

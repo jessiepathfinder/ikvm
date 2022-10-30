@@ -114,7 +114,6 @@ public static class Starter
 		bool debug = false;
 		String debugArg = null;
 		bool noglobbing = false;
-		bool minecraft = false;
 		for(int i = 0; i < args.Length; i++)
 		{
 			String arg = args[i];
@@ -390,9 +389,6 @@ public static class Starter
 				{
 					java.lang.Runtime.getRuntime().addShutdownHook(new WaitShutdownHook());
 				}
-				if(minecraft){
-					MinecraftCompatMode.Enable();
-				}
 				try
 				{
 					method.invoke(null, new object[] { vmargs });
@@ -461,7 +457,7 @@ public static class Starter
 		Console.Error.WriteLine("    -Xverify          Enable strict class file verification");
 		Console.Error.WriteLine("    -Xoptimize:n      Enable IKVM.NET experimental optimizations and use N passes of optimization");
 		Console.Error.WriteLine("    -Xextremeoptimize Enable extreme usage of IKVM.NET experimental optimizations");
-		Console.Error.WriteLine("    -Xmtcompile       Enable IKVM.NET Multithreaded Dynamic Compilation (may break some applications)");
+		Console.Error.WriteLine("                      Used by Jessie Lesbian to help YourKit .NET profiler catch hidden exceptions");
 		Console.Error.WriteLine("    -Xfilecache:size  Set file cache size in bytes (zero to disable)");
 		Console.Error.WriteLine("                      NOTE: This is cache size per FileInputStream/FileOutputStream, not global cache size!");
 		Console.Error.WriteLine();

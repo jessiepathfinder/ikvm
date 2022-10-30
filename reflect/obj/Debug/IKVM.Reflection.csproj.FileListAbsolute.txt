@@ -1,0 +1,8 @@
+C:\Users\jessi\Desktop\IKVM.NewBuild\reflect\bin\Debug\IKVM.Reflection.dll
+C:\Users\jessi\Desktop\IKVM.NewBuild\reflect\bin\Debug\IKVM.Reflection.pdb
+C:\Users\jessi\Desktop\IKVM.NewBuild\reflect\obj\Debug\IKVM.Reflection.csproj.AssemblyReference.cache
+C:\Users\jessi\Desktop\IKVM.NewBuild\reflect\obj\Debug\IKVM.Reflection.csproj.CoreCompileInputs.cache
+C:\Users\jessi\Desktop\IKVM.NewBuild\reflect\obj\Debug\IKVM.Reflection.dll
+C:\Users\jessi\Desktop\IKVM.NewBuild\reflect\obj\Debug\IKVM.Reflection.pdb
+C:\Users\jessi\Desktop\IKVM.NewBuild\bin\IKVM.Reflection.dll
+C:\Users\jessi\Desktop\IKVM.NewBuild\bin\IKVM.Reflection.pdb

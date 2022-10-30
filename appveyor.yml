@@ -1,6 +1,26 @@
 build_script:
- - nant\nant.exe
- - 7z a -mm=Deflate -mmt=on -mx=9 ikvm-test-build.zip .\bin\*
+ - set IKVM_VERSION=%APPVEYOR_BUILD_VERSION%
+ - set IKVM_JAVAC='C:\Program Files\Java\jdk17\bin\javac.exe'
+ - set IKVM_JAVAC_ARGS=-J-Xmx2G -J-XX:+UnlockExperimentalVMOptions -J-XX:-UseJVMCINativeLibrary -J-XX:+UseJVMCICompiler -J-XX:+UseG1GC -J-XX:G1NewSizePercent=20 -J-XX:G1ReservePercent=20 -J-XX:MaxGCPauseMillis=50 -J-XX:G1HeapRegionSize=32M -source 8 -target 8
+ - build.bat
+ - 7z a -mm=Deflate -mmt=on -mx=9 ..\ikvm-test-build.zip .\bin\*
+test_script:
+ - appveyor DownloadFile https://altushost-swe.dl.sourceforge.net/project/dacapobench/9.12-bach-MR1/dacapo-9.12-MR1-bach.jar
+ - ikvmtest.bat avrora
+ - ikvmtest.bat batik
+ - ikvmtest.bat eclipse
+ - ikvmtest.bat fop
+ - ikvmtest.bat h2
+ - ikvmtest.bat jython
+ - ikvmtest.bat luindex
+ - ikvmtest.bat lusearch
+ - ikvmtest.bat lusearch-fix
+ - ikvmtest.bat pmd
+ - ikvmtest.bat sunflow
+ - ikvmtest.bat tomcat
+ - ikvmtest.bat tradebeans
+ - ikvmtest.bat tradesoap
+ - ikvmtest.bat xalan
 artifacts:
  - path: ikvm-test-build.zip
    name: ikvm-test-build

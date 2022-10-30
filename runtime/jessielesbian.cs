@@ -27,7 +27,9 @@ namespace jessielesbian.IKVM
 	#endif
 	public static class Helper
 	{
-		
+		public static void DoNothing(){
+			
+		}
 		public static int FileIOCacheSize = 65536;
 		public static object IKVMSYNC = new object();
 		public static string FirstDynamicAssemblyName = "";
@@ -39,6 +41,9 @@ namespace jessielesbian.IKVM
 		public static int optpasses = 0;
 		public static bool enableJITPreOptimization = false;
 		public static bool extremeOptimizations = false;
+#if STATIC_COMPILER
+		internal static bool disableUnsafeIntrinsics = true;
+#endif
 		internal static bool experimentalOptimizations
 		{
 			get
@@ -51,30 +56,6 @@ namespace jessielesbian.IKVM
 		}
 		internal static readonly MethodInfo ArrayLoad;
 		internal static readonly MethodInfo ArrayStore;
-		private static readonly ManualResetEventSlim manualResetEventSlim = new ManualResetEventSlim();
-		private static readonly ConcurrentQueue<ParallelJob> parallelJobs = new ConcurrentQueue<ParallelJob>();
-		private static void ParallelExecThread()
-		{
-			while (true)
-			{
-				ParallelJob result;
-				if (parallelJobs.TryDequeue(out result))
-				{
-					result.Execute();
-				}
-				else
-				{
-					lock (manualResetEventSlim)
-					{
-						if (manualResetEventSlim.IsSet && parallelJobs.IsEmpty)
-						{
-							manualResetEventSlim.Reset();
-						}
-					}
-					manualResetEventSlim.Wait();
-				}
-			}
-		}
 		public static bool useMultithreadedCompilation = false;
 		static Helper()
 		{
@@ -85,64 +66,6 @@ namespace jessielesbian.IKVM
 			TypeArray[0] = typeof(object);
 			TypeArray[1] = typeof(object);
 			ObjectCheckRefEqual = typeof(object).GetMethod("ReferenceEquals", TypeArray);
-#if !STATIC_COMPILER
-			int limit = Environment.ProcessorCount;
-			for (int i = 0; i < limit; i++)
-			{
-				Thread thread = new Thread(ParallelExecThread);
-				thread.Priority = ThreadPriority.Highest;
-				thread.IsBackground = true;
-				thread.Name = "IKVM.NET Worker Thread #" + i.ToString();
-				thread.Start();
-			}
-#endif
 		}
-		internal static object Dowork(ParallelJob parallelJob)
-		{
-#if STATIC_COMPILER
-			throw new InvalidOperationException();
-#else
-			lock (manualResetEventSlim)
-			{
-				parallelJobs.Enqueue(parallelJob);
-				if(!manualResetEventSlim.IsSet){
-					manualResetEventSlim.Set();
-				}
-			}
-			parallelJob.Sync();
-			if(parallelJob.Error == null){
-				return parallelJob.Returns;
-			} else{
-				throw parallelJob.Error;
-			}
-#endif
-		}
-	}
-	internal abstract class ParallelJob
-	{
-		private readonly ManualResetEventSlim sync = new ManualResetEventSlim();
-		public object Returns { get; private set; }
-		public Exception Error { get; private set; }
-
-		public ParallelJob(){
-			Returns = null;
-			Error = null;
-		}
-
-		public void Execute(){
-			try{
-				Returns = Execute2();
-			} catch(Exception e){
-				Error = e;
-			} finally{
-				sync.Set();
-			}
-		}
-		public void Sync(){
-			sync.Wait();
-			sync.Dispose();
-		}
-
-		protected abstract object Execute2();
 	}
 }

@@ -32,7 +32,9 @@ using System.Runtime.InteropServices;
 using System.Runtime.Serialization;
 using System.Security;
 using System.Threading;
+using System.Threading.Tasks;
 using IKVM.Internal;
+using System.Collections.Concurrent;
 
 public static class Java_sun_misc_GC
 {
@@ -298,11 +300,11 @@ public static class Java_sun_misc_Unsafe
 #if FIRST_PASS
 		return null;
 #else
-        // we pass in ReflectAccess.class as the field type (which isn't used)
-        // to make Field.toString() return something "meaningful" instead of crash
-        java.lang.reflect.Field field = new java.lang.reflect.Field(c, fieldName, ikvm.@internal.ClassLiteral<java.lang.reflect.ReflectAccess>.Value, 0, -1, null, null);
-        field.@override = true;
-        return field;
+		// we pass in ReflectAccess.class as the field type (which isn't used)
+		// to make Field.toString() return something "meaningful" instead of crash
+		java.lang.reflect.Field field = new java.lang.reflect.Field(c, fieldName, ikvm.@internal.ClassLiteral<java.lang.reflect.ReflectAccess>.Value, 0, -1, null, null);
+		field.@override = true;
+		return field;
 #endif
 	}
 
@@ -325,6 +327,27 @@ public static class Java_sun_misc_Unsafe
 		{
 			throw new IndexOutOfRangeException();
 		}
+	}
+	
+	[SecuritySafeCritical]
+	public static byte ReadByte(object obj, long offset)
+	{
+		Stats.Log("ReadByte");
+		CheckArrayBounds(obj, offset, 1);
+		GCHandle handle = GCHandle.Alloc(obj, GCHandleType.Pinned);
+		byte value = Marshal.ReadByte((IntPtr)(handle.AddrOfPinnedObject().ToInt64() + offset));
+		handle.Free();
+		return value;
+	}
+
+	[SecuritySafeCritical]
+	public static void WriteByte(object obj, long offset, byte value)
+	{
+		Stats.Log("WriteByte");
+		CheckArrayBounds(obj, offset, 2);
+		GCHandle handle = GCHandle.Alloc(obj, GCHandleType.Pinned);
+		Marshal.WriteInt16((IntPtr)(handle.AddrOfPinnedObject().ToInt64() + offset), value);
+		handle.Free();
 	}
 
 	[SecuritySafeCritical]
@@ -350,12 +373,13 @@ public static class Java_sun_misc_Unsafe
 	}
 
 	[SecuritySafeCritical]
-	public static long ReadInt64(object obj, long offset)
+	public static long ReadInt64(object obj, long offset, bool atomic)
 	{
 		Stats.Log("ReadInt64");
 		CheckArrayBounds(obj, offset, 8);
 		GCHandle handle = GCHandle.Alloc(obj, GCHandleType.Pinned);
-		long value = Marshal.ReadInt64((IntPtr)(handle.AddrOfPinnedObject().ToInt64() + offset));
+		IntPtr ptr = (IntPtr)(handle.AddrOfPinnedObject().ToInt64() + offset);
+		long value = atomic ? IKVM_GetLong(ptr) : Marshal.ReadInt64(ptr);
 		handle.Free();
 		return value;
 	}
@@ -381,12 +405,17 @@ public static class Java_sun_misc_Unsafe
 	}
 
 	[SecuritySafeCritical]
-	public static void WriteInt64(object obj, long offset, long value)
+	public static void WriteInt64(object obj, long offset, long value, bool atomic)
 	{
 		Stats.Log("WriteInt64");
 		CheckArrayBounds(obj, offset, 8);
 		GCHandle handle = GCHandle.Alloc(obj, GCHandleType.Pinned);
-		Marshal.WriteInt64((IntPtr)(handle.AddrOfPinnedObject().ToInt64() + offset), value);
+		IntPtr ptr = (IntPtr)(handle.AddrOfPinnedObject().ToInt64() + offset);
+		if(atomic){
+			IKVM_SetLong(ptr, value);
+		} else{
+			Marshal.WriteInt64(ptr, value);
+		}
 		handle.Free();
 	}
 
@@ -470,88 +499,184 @@ public static class Java_sun_misc_Unsafe
 #endif
 	}
 
+	[DllImport("ikUnsafe.dll")]
+	private static extern int IKVM_CompareExchangeInt(IntPtr ptr, int expect, int update);
+	[DllImport("ikUnsafe.dll")]
+	private static extern long IKVM_CompareExchangeLong(IntPtr ptr, long expect, long update);
+	[DllImport("ikUnsafe.dll")]
+	private static extern int IKVM_ExchangeInt(IntPtr ptr, int update);
+	[DllImport("ikUnsafe.dll")]
+	private static extern long IKVM_ExchangeLong(IntPtr ptr, long update);
+	[DllImport("ikUnsafe.dll")]
+	private static extern int IKVM_AddInt(IntPtr ptr, int value);
+	[DllImport("ikUnsafe.dll")]
+	private static extern long IKVM_AddLong(IntPtr ptr, long value);
+	
+	//Must be accessible from sun.misc.Unsafe
+	[DllImport("ikUnsafe.dll")]
+	public static extern void IKVM_SetLong(IntPtr ptr, long value);
+	[DllImport("ikUnsafe.dll")]
+	public static extern long IKVM_GetLong(IntPtr ptr);
+
 	public static bool compareAndSwapInt(object thisUnsafe, object obj, long offset, int expect, int update)
 	{
-#if FIRST_PASS
-		return false;
-#else
-		int[] array = obj as int[];
-		if (array != null && (offset & 3) == 0)
-		{
-			Stats.Log("compareAndSwapInt.array");
-			return Interlocked.CompareExchange(ref array[offset / 4], update, expect) == expect;
-		}
-		else if (obj is Array)
+		if(ReferenceEquals(obj, null)){
+			Stats.Log("compareAndSwapInt.direct");
+			return IKVM_CompareExchangeInt((IntPtr) offset, expect, update) == expect;
+		} else if (obj is Array)
 		{
 			Stats.Log("compareAndSwapInt.unaligned");
-			// unaligned or not the right array type, so we can't be atomic
-			lock (thisUnsafe)
-			{
-				if (ReadInt32(obj, offset) == expect)
-				{
-					WriteInt32(obj, offset, update);
-					return true;
-				}
-				return false;
-			}
-		}
-		else
+			CheckArrayBounds(obj, offset, 4);
+			GCHandle handle = GCHandle.Alloc(obj, GCHandleType.Pinned);
+			return IKVM_CompareExchangeInt((IntPtr)(handle.AddrOfPinnedObject().ToInt64() + offset), expect, update) == expect;
+		} else
 		{
-			if (offset >= cacheCompareExchangeInt32.Length || cacheCompareExchangeInt32[offset] == null)
-			{
-				InterlockedResize(ref cacheCompareExchangeInt32, (int)offset + 1);
-				cacheCompareExchangeInt32[offset] = (CompareExchangeInt32)CreateCompareExchange(offset);
-			}
 			Stats.Log("compareAndSwapInt.", offset);
-			return cacheCompareExchangeInt32[offset](obj, update, expect) == expect;
+			return ((CompareExchangeInt32)GetDelegate(offset))(obj, update, expect) == expect;
 		}
-#endif
 	}
 
-    public static bool compareAndSwapLong(object thisUnsafe, object obj, long offset, long expect, long update)
+	public static bool compareAndSwapLong(object thisUnsafe, object obj, long offset, long expect, long update)
 	{
-#if FIRST_PASS
-		return false;
-#else
-		long[] array = obj as long[];
-		if (array != null && (offset & 7) == 0)
-		{
-			Stats.Log("compareAndSwapLong.array");
-			return Interlocked.CompareExchange(ref array[offset / 8], update, expect) == expect;
-		}
-		else if (obj is Array)
+		if(ReferenceEquals(obj, null)){
+			Stats.Log("compareAndSwapLong.direct");
+			return IKVM_CompareExchangeLong((IntPtr) offset, expect, update) == expect;
+		} else if (obj is Array)
 		{
 			Stats.Log("compareAndSwapLong.unaligned");
-			// unaligned or not the right array type, so we can't be atomic
-			lock (thisUnsafe)
-			{
-				if (ReadInt64(obj, offset) == expect)
-				{
-					WriteInt64(obj, offset, update);
-					return true;
-				}
-				return false;
-			}
+			CheckArrayBounds(obj, offset, 8);
+			GCHandle handle = GCHandle.Alloc(obj, GCHandleType.Pinned);
+			return IKVM_CompareExchangeLong((IntPtr)(handle.AddrOfPinnedObject().ToInt64() + offset), expect, update) == expect;
 		}
 		else
 		{
-			if (offset >= cacheCompareExchangeInt64.Length || cacheCompareExchangeInt64[offset] == null)
-			{
-				InterlockedResize(ref cacheCompareExchangeInt64, (int)offset + 1);
-				cacheCompareExchangeInt64[offset] = (CompareExchangeInt64)CreateCompareExchange(offset);
-			}
 			Stats.Log("compareAndSwapLong.", offset);
-			return cacheCompareExchangeInt64[offset](obj, update, expect) == expect;
+
+			return ((CompareExchangeInt64)GetDelegate(offset))(obj, update, expect) == expect;
 		}
+	}
+	public static int getAndAddInt(object thisUnsafe, object obj, long offset, int delta)
+	{
+		if(ReferenceEquals(obj, null)){
+			Stats.Log("getAndAddInt.direct");
+			return IKVM_AddInt((IntPtr) offset, delta);
+		} else if (obj is Array)
+		{
+			Stats.Log("getAndAddInt.unaligned");
+			CheckArrayBounds(obj, offset, 4);
+			GCHandle handle = GCHandle.Alloc(obj, GCHandleType.Pinned);
+			return IKVM_AddInt((IntPtr)(handle.AddrOfPinnedObject().ToInt64() + offset), delta);
+		} else {
+			while (true) {
+#if !FIRST_PASS
+				int i = ((sun.misc.Unsafe)thisUnsafe).getIntVolatile(obj, offset);
+				if (compareAndSwapInt(null, obj, offset, i, i + delta)) {
+					return i;
+				}
 #endif
+			}
+		}
+	}
+	public static long getAndAddLong(object thisUnsafe, object obj, long offset, long delta)
+	{
+		if(ReferenceEquals(obj, null)){
+			Stats.Log("getAndAddLong.direct");
+			return IKVM_AddLong((IntPtr) offset, delta);
+		} else if (obj is Array)
+		{
+			Stats.Log("getAndAddLong.unaligned");
+			CheckArrayBounds(obj, offset, 8);
+			GCHandle handle = GCHandle.Alloc(obj, GCHandleType.Pinned);
+			return IKVM_AddLong((IntPtr)(handle.AddrOfPinnedObject().ToInt64() + offset), delta);
+		} else {
+			while (true) {
+#if !FIRST_PASS
+				long i = ((sun.misc.Unsafe)thisUnsafe).getLongVolatile(obj, offset);
+				if (compareAndSwapLong(null, obj, offset, i, i + delta)) {
+					return i;
+				}
+#endif
+			}
+		}
+	}
+	public static int getAndSetInt(object thisUnsafe, object obj, long offset, int delta)
+	{
+		if(ReferenceEquals(obj, null)){
+			Stats.Log("getAndSetInt.direct");
+			return IKVM_ExchangeInt((IntPtr) offset, delta);
+		} else if (obj is Array)
+		{
+			Stats.Log("getAndSetInt.unaligned");
+			CheckArrayBounds(obj, offset, 4);
+			GCHandle handle = GCHandle.Alloc(obj, GCHandleType.Pinned);
+			return IKVM_ExchangeInt((IntPtr)(handle.AddrOfPinnedObject().ToInt64() + offset), delta);
+		}
+		else {
+			while (true) {
+#if !FIRST_PASS
+				int i = ((sun.misc.Unsafe)thisUnsafe).getIntVolatile(obj, offset);
+				if (compareAndSwapInt(null, obj, offset, i, delta)) {
+					return i;
+				}
+#endif
+			}
+		}
 	}
 
+	public static object getAndSetObject(object thisUnsafe, object o, long offset, object newValue){
+		if(ReferenceEquals(o, null)){
+			throw new NotImplementedException("IKVM.NET doesn't support off-heap object references, please use JNI instead");
+		}
+		object[] array = o as object[];
+		if(ReferenceEquals(array, null)){
+			CompareExchangeObject tmp = (CompareExchangeObject)GetDelegate(offset);
+			while(true){
+#if FIRST_PASS
+				Object val = null;
+#else
+				Object val = ((sun.misc.Unsafe)thisUnsafe).getObjectVolatile(o, offset);
+#endif
+				if (ReferenceEquals(tmp(o, newValue, val), val))
+				{
+					return val;
+				}
+			}
+		} else{
+			if(offset % 4 == 0){
+				return Interlocked.Exchange(ref array[offset / 4], newValue);
+			} else{
+				throw new NotImplementedException("IKVM.NET doesn't support unaligned object arrays");
+			}
+		}
+	}
+	public static long getAndSetLong(object thisUnsafe, object obj, long offset, long delta)
+	{
+		if(ReferenceEquals(obj, null)){
+			Stats.Log("getAndSetLong.direct");
+			return IKVM_ExchangeLong((IntPtr) offset, delta);
+		} else if (obj is Array)
+		{
+			Stats.Log("getAndSetLong.unaligned");
+			CheckArrayBounds(obj, offset, 8);
+			GCHandle handle = GCHandle.Alloc(obj, GCHandleType.Pinned);
+			return IKVM_ExchangeLong((IntPtr)(handle.AddrOfPinnedObject().ToInt64() + offset), delta);
+		}
+		else {
+			while (true)
+			{
+#if !FIRST_PASS
+				long i = ((sun.misc.Unsafe)thisUnsafe).getLongVolatile(obj, offset);
+				if (compareAndSwapLong(null, obj, offset, i, delta)) {
+					return i;
+				}
+#endif
+			}
+		}
+	}
 	private delegate int CompareExchangeInt32(object obj, int value, int comparand);
 	private delegate long CompareExchangeInt64(object obj, long value, long comparand);
 	private delegate object CompareExchangeObject(object obj, object value, object comparand);
-	private static CompareExchangeInt32[] cacheCompareExchangeInt32 = new CompareExchangeInt32[0];
-	private static CompareExchangeInt64[] cacheCompareExchangeInt64 = new CompareExchangeInt64[0];
-	private static CompareExchangeObject[] cacheCompareExchangeObject = new CompareExchangeObject[0];
+	private static readonly ConcurrentDictionary<long, WeakReference> cacheCompareExchange = new ConcurrentDictionary<long, WeakReference>();
 
 	private static void InterlockedResize<T>(ref T[] array, int newSize)
 	{
@@ -571,9 +696,11 @@ public static class Java_sun_misc_Unsafe
 		}
 	}
 
-#if !FIRST_PASS
 	private static Delegate CreateCompareExchange(long fieldOffset)
 	{
+#if FIRST_PASS
+		return null;
+#else
 		FieldInfo field = GetFieldInfo(fieldOffset);
 		bool primitive = field.FieldType.IsPrimitive;
 		Type signatureType = primitive ? field.FieldType : typeof(object);
@@ -613,8 +740,9 @@ public static class Java_sun_misc_Unsafe
 		ilgen.Emit(OpCodes.Call, compareExchange);
 		ilgen.Emit(OpCodes.Ret);
 		return dm.CreateDelegate(delegateType);
+#endif
 	}
-
+#if !FIRST_PASS
 	private static FieldInfo GetFieldInfo(long offset)
 	{
 		FieldWrapper fw = FieldWrapper.FromField(sun.misc.Unsafe.getField(offset));
@@ -629,23 +757,66 @@ public static class Java_sun_misc_Unsafe
 #if FIRST_PASS
 		return false;
 #else
+		if(ReferenceEquals(obj, null)){
+			throw new NotImplementedException("IKVM.NET doesn't support off-heap object references, please use JNI instead");
+		}
 		object[] array = obj as object[];
-		if (array != null)
+		if (ReferenceEquals(array, null))
 		{
-			Stats.Log("compareAndSwapObject.array");
-			return Atomic.CompareExchange(array, (int)offset, update, expect) == expect;
+			Stats.Log("compareAndSwapObject.", offset);
+			return ((CompareExchangeObject)GetDelegate(offset))(obj, update, expect) == expect;
 		}
 		else
 		{
-			if (offset >= cacheCompareExchangeObject.Length || cacheCompareExchangeObject[offset] == null)
-			{
-				InterlockedResize(ref cacheCompareExchangeObject, (int)offset + 1);
-				cacheCompareExchangeObject[offset] = (CompareExchangeObject)CreateCompareExchange(offset);
+			Stats.Log("compareAndSwapObject.array");
+			if(offset % 4 == 0){
+				return ReferenceEquals(Interlocked.CompareExchange(ref array[offset / 4], update, expect), expect);
+			} else{
+				throw new NotImplementedException("IKVM.NET doesn't support unaligned object arrays");
 			}
-			Stats.Log("compareAndSwapObject.", offset);
-			return cacheCompareExchangeObject[offset](obj, update, expect) == expect;
 		}
 #endif
+	}
+
+	private sealed class SwapWrapper{
+		private readonly long offset;
+		public readonly Delegate underlying;
+
+		public SwapWrapper(long offset)
+		{
+			this.offset = offset;
+			underlying = CreateCompareExchange(offset);
+		}
+		~SwapWrapper(){
+			WeakReference wr;
+			cacheCompareExchange.TryRemove(offset, out wr);
+		}
+	}
+
+	private static Delegate GetDelegate(long offset){
+		SwapWrapper compareExchange;
+		WeakReference wr;
+		if (cacheCompareExchange.TryGetValue(offset, out wr))
+		{
+			compareExchange = (SwapWrapper)wr.Target;
+			if (ReferenceEquals(compareExchange, null))
+			{
+				compareExchange = new SwapWrapper(offset);
+				
+				if(!cacheCompareExchange.TryAdd(offset, new WeakReference(compareExchange, false))){
+					GC.SuppressFinalize(compareExchange);
+				}
+			}
+		}
+		else
+		{
+			compareExchange = new SwapWrapper(offset);
+			if (!cacheCompareExchange.TryAdd(offset, new WeakReference(compareExchange, false)))
+			{
+				GC.SuppressFinalize(compareExchange);
+			}
+		}
+		return compareExchange.underlying;
 	}
 
 	abstract class Atomic
