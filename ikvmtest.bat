@@ -1,5 +1,5 @@
 @echo off
-built-ikvm\bin\ikvm.exe -Xextremeoptimize -jar dacapo-9.12-MR1-bach.jar %1>ikvmtest.txt 2>&1
+bin\ikvm.exe -Xextremeoptimize -jar dacapo-9.12-MR1-bach.jar %1>ikvmtest.txt 2>&1
 rmdir /s /q scratch
 FOR /F "tokens=* delims=" %%x in (ikvmtest.txt) DO call chktestpassing.bat "%%x"
 if exist TEST_PASSING goto pass
