@@ -520,10 +520,7 @@ public static class Java_sun_misc_Unsafe
 
 	public static bool compareAndSwapInt(object thisUnsafe, object obj, long offset, int expect, int update)
 	{
-		if(ReferenceEquals(obj, null)){
-			Stats.Log("compareAndSwapInt.direct");
-			return IKVM_CompareExchangeInt((IntPtr) offset, expect, update) == expect;
-		} else if (obj is Array)
+		if (obj is Array)
 		{
 			Stats.Log("compareAndSwapInt.unaligned");
 			CheckArrayBounds(obj, offset, 4);
@@ -538,10 +535,7 @@ public static class Java_sun_misc_Unsafe
 
 	public static bool compareAndSwapLong(object thisUnsafe, object obj, long offset, long expect, long update)
 	{
-		if(ReferenceEquals(obj, null)){
-			Stats.Log("compareAndSwapLong.direct");
-			return IKVM_CompareExchangeLong((IntPtr) offset, expect, update) == expect;
-		} else if (obj is Array)
+		if (obj is Array)
 		{
 			Stats.Log("compareAndSwapLong.unaligned");
 			CheckArrayBounds(obj, offset, 8);
@@ -557,10 +551,7 @@ public static class Java_sun_misc_Unsafe
 	}
 	public static int getAndAddInt(object thisUnsafe, object obj, long offset, int delta)
 	{
-		if(ReferenceEquals(obj, null)){
-			Stats.Log("getAndAddInt.direct");
-			return IKVM_AddInt((IntPtr) offset, delta);
-		} else if (obj is Array)
+		if (obj is Array)
 		{
 			Stats.Log("getAndAddInt.unaligned");
 			CheckArrayBounds(obj, offset, 4);
@@ -579,10 +570,7 @@ public static class Java_sun_misc_Unsafe
 	}
 	public static long getAndAddLong(object thisUnsafe, object obj, long offset, long delta)
 	{
-		if(ReferenceEquals(obj, null)){
-			Stats.Log("getAndAddLong.direct");
-			return IKVM_AddLong((IntPtr) offset, delta);
-		} else if (obj is Array)
+		if (obj is Array)
 		{
 			Stats.Log("getAndAddLong.unaligned");
 			CheckArrayBounds(obj, offset, 8);
@@ -601,10 +589,7 @@ public static class Java_sun_misc_Unsafe
 	}
 	public static int getAndSetInt(object thisUnsafe, object obj, long offset, int delta)
 	{
-		if(ReferenceEquals(obj, null)){
-			Stats.Log("getAndSetInt.direct");
-			return IKVM_ExchangeInt((IntPtr) offset, delta);
-		} else if (obj is Array)
+		if (obj is Array)
 		{
 			Stats.Log("getAndSetInt.unaligned");
 			CheckArrayBounds(obj, offset, 4);
@@ -624,9 +609,6 @@ public static class Java_sun_misc_Unsafe
 	}
 
 	public static object getAndSetObject(object thisUnsafe, object o, long offset, object newValue){
-		if(ReferenceEquals(o, null)){
-			throw new NotImplementedException("IKVM.NET doesn't support off-heap object references, please use JNI instead");
-		}
 		object[] array = o as object[];
 		if(ReferenceEquals(array, null)){
 			CompareExchangeObject tmp = (CompareExchangeObject)GetDelegate(offset);
@@ -651,10 +633,7 @@ public static class Java_sun_misc_Unsafe
 	}
 	public static long getAndSetLong(object thisUnsafe, object obj, long offset, long delta)
 	{
-		if(ReferenceEquals(obj, null)){
-			Stats.Log("getAndSetLong.direct");
-			return IKVM_ExchangeLong((IntPtr) offset, delta);
-		} else if (obj is Array)
+		if (obj is Array)
 		{
 			Stats.Log("getAndSetLong.unaligned");
 			CheckArrayBounds(obj, offset, 8);
@@ -757,9 +736,6 @@ public static class Java_sun_misc_Unsafe
 #if FIRST_PASS
 		return false;
 #else
-		if(ReferenceEquals(obj, null)){
-			throw new NotImplementedException("IKVM.NET doesn't support off-heap object references, please use JNI instead");
-		}
 		object[] array = obj as object[];
 		if (ReferenceEquals(array, null))
 		{

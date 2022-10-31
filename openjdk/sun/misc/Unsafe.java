@@ -185,9 +185,6 @@ public final class Unsafe
 	
     public void putObjectVolatile(Object obj, long offset, Object newValue)
     {
-		if(obj == null){
-			throwException(new UnsupportedOperationException("IKVM.NET doesn't support off-heap object references, please use JNI instead"));
-		}
         if(obj instanceof Object[])
         {
 			if(offset % 4 == 0){
@@ -221,9 +218,6 @@ public final class Unsafe
     }
     public Object getObjectVolatile(Object obj, long offset)
     {
-        if(obj == null){
-			throwException(new UnsupportedOperationException("IKVM.NET doesn't support off-heap object references, please use JNI instead"));
-		}
 		if(obj instanceof Object[])
         {
 			if(offset % 4 == 0){
@@ -269,11 +263,7 @@ public final class Unsafe
 	@cli.System.Security.SecuritySafeCriticalAttribute.Annotation
     public void putIntVolatile(Object obj, long offset, int newValue)
     {
-        if(obj == null){
-			Interlocked.MemoryBarrier();
-			putInt(offset, newValue);
-			Interlocked.MemoryBarrier();
-		} else if (obj instanceof cli.System.Array)
+		if (obj instanceof cli.System.Array)
         {
 			Interlocked.MemoryBarrier();
             WriteInt32(obj, offset, newValue);
@@ -303,12 +293,7 @@ public final class Unsafe
 	@cli.System.Security.SecuritySafeCriticalAttribute.Annotation
     public int getIntVolatile(Object obj, long offset)
     {
-        if(obj == null){
-			Interlocked.MemoryBarrier();
-			int res = getInt(offset);
-			Interlocked.MemoryBarrier();
-			return res;
-		} else if (obj instanceof cli.System.Array)
+		if (obj instanceof cli.System.Array)
         {
 			Interlocked.MemoryBarrier();
 			int val = ReadInt32(obj, offset);
@@ -336,9 +321,7 @@ public final class Unsafe
 	@cli.System.Security.SecuritySafeCriticalAttribute.Annotation
     public void putLongVolatile(Object obj, long offset, long newValue)
     {
-        if(obj == null){
-			IKVM_SetLong(IntPtr.op_Explicit(offset), newValue);
-		} else if (obj instanceof cli.System.Array)
+		if (obj instanceof cli.System.Array)
         {
             WriteInt64(obj, offset, newValue, true);
         }
@@ -366,9 +349,7 @@ public final class Unsafe
 	@cli.System.Security.SecuritySafeCriticalAttribute.Annotation
     public long getLongVolatile(Object obj, long offset)
     {
-        if(obj == null){
-			return IKVM_GetLong(IntPtr.op_Explicit(offset));
-		} else if (obj instanceof cli.System.Array)
+        if (obj instanceof cli.System.Array)
         {
             long val = ReadInt64(obj, offset, true);
 			return val;
@@ -392,7 +373,7 @@ public final class Unsafe
 	@cli.System.Security.SecuritySafeCriticalAttribute.Annotation
     public void putBoolean(Object obj, long offset, boolean newValue)
     {
-        if (obj instanceof cli.System.Array || obj == null)
+        if (obj instanceof cli.System.Array)
         {
             putByte(obj, offset, newValue ? (byte)1 : (byte)0);
         }
@@ -411,7 +392,7 @@ public final class Unsafe
 
     public void putBooleanVolatile(Object obj, long offset, boolean newValue)
     {
-		if (obj instanceof cli.System.Array || obj == null)
+		if (obj instanceof cli.System.Array)
         {
             putByteVolatile(obj, offset, newValue ? (byte)1 : (byte)0);
         }
@@ -433,7 +414,7 @@ public final class Unsafe
 
     public boolean getBoolean(Object obj, long offset)
     {
-        if (obj instanceof cli.System.Array || obj == null)
+        if (obj instanceof cli.System.Array)
         {
             return getByte(obj, offset) != 0;
         }
@@ -452,7 +433,7 @@ public final class Unsafe
 
     public boolean getBooleanVolatile(Object obj, long offset)
     {
-		if (obj instanceof cli.System.Array || obj == null)
+		if (obj instanceof cli.System.Array)
         {
             return getByteVolatile(obj, offset) != 0;
         }
@@ -475,9 +456,7 @@ public final class Unsafe
 	@cli.System.Security.SecuritySafeCriticalAttribute.Annotation
     public void putByte(Object obj, long offset, byte newValue)
     {
-        if(obj == null){
-			putByte(offset, newValue);
-		} else if (obj instanceof cli.System.Array)
+        if (obj instanceof cli.System.Array)
         {
             WriteByte(obj, offset, newValue);
         }
@@ -503,9 +482,7 @@ public final class Unsafe
 	@cli.System.Security.SecuritySafeCriticalAttribute.Annotation
     public byte getByte(Object obj, long offset)
     {
-        if(obj == null){
-			return getByte(offset);
-		} else if (obj instanceof cli.System.Array)
+        if (obj instanceof cli.System.Array)
         {
             return ReadByte(obj, offset);
         }
@@ -532,9 +509,7 @@ public final class Unsafe
 	@cli.System.Security.SecuritySafeCriticalAttribute.Annotation
     public void putChar(Object obj, long offset, char newValue)
     {
-        if(obj == null){
-			putChar(offset, newValue);
-		} else if (obj instanceof cli.System.Array)
+        if (obj instanceof cli.System.Array)
         {
             WriteInt16(obj, offset, (short)newValue);
         }
@@ -560,9 +535,7 @@ public final class Unsafe
 	@cli.System.Security.SecuritySafeCriticalAttribute.Annotation
     public char getChar(Object obj, long offset)
     {
-        if(obj == null){
-			return getChar(offset);
-		} else if (obj instanceof cli.System.Array)
+        if (obj instanceof cli.System.Array)
         {
             return (char)ReadInt16(obj, offset);
         }
@@ -589,9 +562,7 @@ public final class Unsafe
 	@cli.System.Security.SecuritySafeCriticalAttribute.Annotation
     public void putShort(Object obj, long offset, short newValue)
     {
-        if(obj == null){
-			putShort(offset, newValue);
-		} else if (obj instanceof cli.System.Array)
+        if (obj instanceof cli.System.Array)
         {
             WriteInt16(obj, offset, newValue);
         }
@@ -617,9 +588,7 @@ public final class Unsafe
 	@cli.System.Security.SecuritySafeCriticalAttribute.Annotation
     public short getShort(Object obj, long offset)
     {
-        if(obj == null){
-			return getShort(offset);
-		} else if (obj instanceof cli.System.Array)
+        if (obj instanceof cli.System.Array)
         {
             return ReadInt16(obj, offset);
         }
@@ -646,9 +615,7 @@ public final class Unsafe
 	@cli.System.Security.SecuritySafeCriticalAttribute.Annotation
     public void putInt(Object obj, long offset, int newValue)
     {
-        if(obj == null){
-			putInt(offset, newValue);
-		} else if (obj instanceof cli.System.Array)
+        if (obj instanceof cli.System.Array)
         {
             WriteInt32(obj, offset, newValue);
         }
@@ -667,9 +634,7 @@ public final class Unsafe
 	@cli.System.Security.SecuritySafeCriticalAttribute.Annotation
     public int getInt(Object obj, long offset)
     {
-        if(obj == null){
-			return getInt(offset);
-		} else if (obj instanceof cli.System.Array)
+        if (obj instanceof cli.System.Array)
         {
             return ReadInt32(obj, offset);
         }
@@ -741,9 +706,7 @@ public final class Unsafe
 	@cli.System.Security.SecuritySafeCriticalAttribute.Annotation
     public void putLong(Object obj, long offset, long newValue)
     {
-        if(obj == null){
-			putLong(offset, newValue);
-		} else if (obj instanceof cli.System.Array)
+        if (obj instanceof cli.System.Array)
         {
             WriteInt64(obj, offset, newValue, false);
         }
@@ -762,9 +725,7 @@ public final class Unsafe
 	@cli.System.Security.SecuritySafeCriticalAttribute.Annotation
     public long getLong(Object obj, long offset)
     {
-        if(obj == null){
-			return getLong(offset);
-		} else if (obj instanceof cli.System.Array)
+        if (obj instanceof cli.System.Array)
         {
             return ReadInt64(obj, offset, false);
         }
@@ -782,7 +743,7 @@ public final class Unsafe
     }
     public void putDouble(Object obj, long offset, double newValue)
     {
-        if (obj instanceof cli.System.Array || obj == null)
+        if (obj instanceof cli.System.Array)
         {
             putLong(obj, offset, Double.doubleToRawLongBits(newValue));
         }
@@ -801,7 +762,7 @@ public final class Unsafe
 
     public void putDoubleVolatile(Object obj, long offset, double newValue)
     {
-        if (obj instanceof cli.System.Array || obj == null)
+        if (obj instanceof cli.System.Array)
         {
             putLongVolatile(obj, offset, Double.doubleToRawLongBits(newValue));
         }
@@ -824,7 +785,7 @@ public final class Unsafe
 	@cli.System.Security.SecuritySafeCriticalAttribute.Annotation
     public double getDouble(Object obj, long offset)
     {
-        if (obj instanceof cli.System.Array || obj == null)
+        if (obj instanceof cli.System.Array)
         {
             return Double.longBitsToDouble(getLong(obj, offset));
         }
@@ -843,7 +804,7 @@ public final class Unsafe
 
     public double getDoubleVolatile(Object obj, long offset)
     {
-        if (obj instanceof cli.System.Array || obj == null)
+        if (obj instanceof cli.System.Array)
         {
             return Double.longBitsToDouble(getLongVolatile(obj, offset));
         }
@@ -866,9 +827,6 @@ public final class Unsafe
 
     public void putObject(Object obj, long offset, Object newValue)
     {
-		if(obj == null){
-			throwException(new UnsupportedOperationException("IKVM.NET doesn't support off-heap object references, please use JNI instead"));
-		}
         if (obj instanceof Object[])
         {
             if(offset % 4 == 0){
@@ -892,9 +850,6 @@ public final class Unsafe
 
     public Object getObject(Object obj, long offset)
     {
-		if(obj == null){
-			throwException(new UnsupportedOperationException("IKVM.NET doesn't support off-heap object references, please use JNI instead"));
-		}
         if (obj instanceof Object[])
         {
 			return (offset % 4 == 0) ? ((Object[])obj)[(int)(offset / 4)] : null;
