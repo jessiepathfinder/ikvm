@@ -300,6 +300,16 @@ public static class Java_sun_misc_Unsafe
 	private static readonly MethodInfo exchangeObject = typeof(Interlocked).GetMethod("Exchange", new System.Type[] { typeof(object).MakeByRefType(), typeof(object) });
 	private static readonly ConcurrentDictionary<FieldInfo, Func<object, object, object, object>> compareExchangeObjectCache = new ConcurrentDictionary<FieldInfo, Func<object, object, object, object>>();
 	private static readonly ConcurrentDictionary<FieldInfo, Func<object, object, object>> exchangeObjectCache = new ConcurrentDictionary<FieldInfo, Func<object, object, object>>();
+	private static readonly ConcurrentDictionary<Type, MethodInfo> compareExchangeCache2 = new ConcurrentDictionary<Type, MethodInfo>();
+	private static readonly ConcurrentDictionary<Type, MethodInfo> exchangeCache2 = new ConcurrentDictionary<Type, MethodInfo>();
+	private static MethodInfo GetGenericCompareExchange(Type type){
+		return InterlockedMethods.CompareExchangeOfT.MakeGenericMethod(type);
+	}
+	private static MethodInfo GetGenericExchange(Type type)
+	{
+		return InterlockedMethods.ExchangeOfT.MakeGenericMethod(type);
+	}
+
 
 	private static Func<object, object, object, object> CreateCompareExchangeObjectCall(FieldInfo valueField)
 	{
@@ -367,7 +377,7 @@ public static class Java_sun_misc_Unsafe
 			var instanceParam = Expression.Parameter(typeof(object));
 			var field = Expression.Field(valueField.IsStatic ? null : Expression.Convert(instanceParam, valueField.DeclaringType), valueField);
 			var valueParam = Expression.Parameter(typeof(T));
-			var lambda = Expression.Lambda<Func<object, T, T>>(Expression.Call(null, add, field, valueParam), instanceParam, valueParam);
+			var lambda = Expression.Lambda<Func<object, T, T>>(Expression.Subtract(Expression.Call(null, add, field, valueParam), valueParam), instanceParam, valueParam);
 			return lambda.Compile();
 		}
 	}
@@ -661,26 +671,6 @@ public static class Java_sun_misc_Unsafe
 		else {
 			return TripleAtomicHelper<int>.Exchange(obj, GetFieldInfo(offset), delta);
 		}
-	}
-	public static float getFloatVolatile2(object obj, long offset)
-	{
-		return TripleAtomicHelper<float>.CompareExchange(obj, GetFieldInfo(offset), 0, 0);
-	}
-	public static double getDoubleVolatile2(object obj, long offset)
-	{
-		return TripleAtomicHelper<double>.CompareExchange(obj, GetFieldInfo(offset), 0, 0);
-	}
-	public static void setFloatVolatile2(object obj, long offset, float val)
-	{
-		TripleAtomicHelper<float>.Exchange(obj, GetFieldInfo(offset), val);
-	}
-	public static void setDoubleVolatile2(object obj, long offset, double val)
-	{
-		TripleAtomicHelper<double>.Exchange(obj, GetFieldInfo(offset), val);
-	}
-
-	public static object getObjectVolatile2(object obj, long offset){
-		return compareExchangeObjectCache.GetOrAdd(GetFieldInfo(offset), CreateCompareExchangeObjectCall)(obj, null, null);
 	}
 
 	public static object getAndSetObject(object thisUnsafe, object o, long offset, object newValue){
