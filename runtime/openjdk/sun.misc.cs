@@ -303,20 +303,18 @@ public static class Java_sun_misc_Unsafe
 
 	private static Func<object, object, object, object> CreateCompareExchangeObjectCall(FieldInfo valueField)
 	{
-		System.Type type = valueField.FieldType;
 		var instanceParam = Expression.Parameter(typeof(object));
-		var field = Expression.Field(Expression.Convert(instanceParam, valueField.DeclaringType), valueField);
-		var valueParam = Expression.Parameter(type);
-		var comparandParam = Expression.Parameter(type);
+		var field = Expression.Field(valueField.IsStatic ? null : Expression.Convert(instanceParam, valueField.DeclaringType), valueField);
+		var valueParam = Expression.Parameter(typeof(object));
+		var comparandParam = Expression.Parameter(typeof(object));
 		var lambda = Expression.Lambda<Func<object, object, object, object>>(Expression.Call(null, compareExchangeObject, field, valueParam, comparandParam), instanceParam, valueParam, comparandParam);
 		return lambda.Compile();
 	}
 	private static Func<object, object, object> CreateExchangeObjectCall(FieldInfo valueField)
 	{
-		System.Type type = valueField.FieldType;
 		var instanceParam = Expression.Parameter(typeof(object));
-		var field = Expression.Field(Expression.Convert(instanceParam, valueField.DeclaringType), valueField);
-		var valueParam = Expression.Parameter(type);
+		var field = Expression.Field(valueField.IsStatic ? null : Expression.Convert(instanceParam, valueField.DeclaringType), valueField);
+		var valueParam = Expression.Parameter(typeof(object));
 		var lambda = Expression.Lambda<Func<object, object, object>>(Expression.Call(null, exchangeObject, field, valueParam), instanceParam, valueParam);
 		return lambda.Compile();
 	}
@@ -346,7 +344,7 @@ public static class Java_sun_misc_Unsafe
 			if (valueField.FieldType != typeof(T))
 				throw new ArgumentOutOfRangeException(nameof(valueField), $"Expected {typeof(T).Name} type field but got {valueField.FieldType.Name}");
 			var instanceParam = Expression.Parameter(typeof(object));
-			var field = Expression.Field(Expression.Convert(instanceParam, valueField.DeclaringType), valueField);
+			var field = Expression.Field(valueField.IsStatic ? null : Expression.Convert(instanceParam, valueField.DeclaringType), valueField);
 			var valueParam = Expression.Parameter(typeof(T));
 			var comparandParam = Expression.Parameter(typeof(T));
 			var lambda = Expression.Lambda<Func<object, T, T, T>>(Expression.Call(null, compareExchange, field, valueParam, comparandParam), instanceParam, valueParam, comparandParam);
@@ -357,7 +355,7 @@ public static class Java_sun_misc_Unsafe
 			if (valueField.FieldType != typeof(T))
 				throw new ArgumentOutOfRangeException(nameof(valueField), $"Expected {typeof(T).Name} type field but got {valueField.FieldType.Name}");
 			var instanceParam = Expression.Parameter(typeof(object));
-			var field = Expression.Field(Expression.Convert(instanceParam, valueField.DeclaringType), valueField);
+			var field = Expression.Field(valueField.IsStatic ? null : Expression.Convert(instanceParam, valueField.DeclaringType), valueField);
 			var valueParam = Expression.Parameter(typeof(T));
 			var lambda = Expression.Lambda<Func<object, T, T>>(Expression.Call(null, exchange, field, valueParam), instanceParam, valueParam);
 			return lambda.Compile();
@@ -367,7 +365,7 @@ public static class Java_sun_misc_Unsafe
 			if (valueField.FieldType != typeof(T))
 				throw new ArgumentOutOfRangeException(nameof(valueField), $"Expected {typeof(T).Name} type field but got {valueField.FieldType.Name}");
 			var instanceParam = Expression.Parameter(typeof(object));
-			var field = Expression.Field(Expression.Convert(instanceParam, valueField.DeclaringType), valueField);
+			var field = Expression.Field(valueField.IsStatic ? null : Expression.Convert(instanceParam, valueField.DeclaringType), valueField);
 			var valueParam = Expression.Parameter(typeof(T));
 			var lambda = Expression.Lambda<Func<object, T, T>>(Expression.Call(null, add, field, valueParam), instanceParam, valueParam);
 			return lambda.Compile();

@@ -763,7 +763,11 @@ namespace IKVM.Internal
 			java.util.Enumeration e = zf.entries();
 			while (e.hasMoreElements())
 			{
-				AddZipEntry(zf, root, (java.util.zip.ZipEntry)e.nextElement());
+				try{
+					AddZipEntry(zf, root, (java.util.zip.ZipEntry)e.nextElement());
+				} catch (System.ArgumentException){
+					
+				}
 			}
 
 			// make "lib/security/local_policy.jar" point to "lib/security/US_export_policy.jar"
