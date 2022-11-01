@@ -601,7 +601,7 @@ public static class Java_sun_misc_Unsafe
 			Stats.Log("compareAndSwapInt.unaligned");
 			CheckArrayBounds(obj, offset, 4);
 			GCHandle handle = GCHandle.Alloc(obj, GCHandleType.Pinned);
-			return IKVM_CompareExchangeInt((IntPtr)(handle.AddrOfPinnedObject().ToInt64() + offset), expect, update) == expect;
+			return IKVM_CompareExchangeInt((IntPtr)(handle.AddrOfPinnedObject().ToInt64() + offset), update, expect) == expect;
 		} else
 		{
 			Stats.Log("compareAndSwapInt.", offset);
@@ -616,7 +616,7 @@ public static class Java_sun_misc_Unsafe
 			Stats.Log("compareAndSwapLong.unaligned");
 			CheckArrayBounds(obj, offset, 8);
 			GCHandle handle = GCHandle.Alloc(obj, GCHandleType.Pinned);
-			return IKVM_CompareExchangeLong((IntPtr)(handle.AddrOfPinnedObject().ToInt64() + offset), expect, update) == expect;
+			return IKVM_CompareExchangeLong((IntPtr)(handle.AddrOfPinnedObject().ToInt64() + offset), update, expect) == expect;
 		}
 		else
 		{
@@ -732,7 +732,7 @@ public static class Java_sun_misc_Unsafe
 		if (ReferenceEquals(array, null))
 		{
 			Stats.Log("compareAndSwapObject.", offset);
-			return ReferenceEquals(compareExchangeObjectCache.GetOrAdd(GetFieldInfo(offset), CreateCompareExchangeObjectCall)(obj, expect, update), expect);
+			return ReferenceEquals(compareExchangeObjectCache.GetOrAdd(GetFieldInfo(offset), CreateCompareExchangeObjectCall)(obj, update, expect), expect);
 		}
 		else
 		{
