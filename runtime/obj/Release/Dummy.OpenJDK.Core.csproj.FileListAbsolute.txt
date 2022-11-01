@@ -1,4 +1,0 @@
-C:\Users\jessi\Desktop\IKVM.NewBuild\runtime\obj\Release\Dummy.OpenJDK.Core.csproj.AssemblyReference.cache
-C:\Users\jessi\Desktop\IKVM.NewBuild\runtime\obj\Release\Dummy.OpenJDK.Core.csproj.CoreCompileInputs.cache
-C:\Users\jessi\Desktop\IKVM.NewBuild\bin\IKVM.OpenJDK.Core.dll
-C:\Users\jessi\Desktop\IKVM.NewBuild\runtime\obj\Release\IKVM.OpenJDK.Core.dll

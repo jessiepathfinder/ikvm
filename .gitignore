@@ -35,4 +35,5 @@ tools\*.exe
 tools\*.dll
 tools\pubkey.txt
 .vs/*
-
+*.cache
+*.pdb

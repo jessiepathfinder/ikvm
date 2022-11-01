@@ -142,9 +142,19 @@ public static class Java_java_io_FileDescriptor
 			return new FileStream(name, fileMode, fileAccess, FileShare.ReadWrite, 1, false);
 		}
 	}
+	private static readonly int FileIOCacheSize;
+#if !FIRST_PASS
+	static Java_java_io_FileDescriptor(){
+		string tmp = java.lang.System.getProperty("ikvm.runtime.fileIOCacheSize");
+		if (!string.IsNullOrEmpty(tmp))
+		{
+			FileIOCacheSize = Convert.ToInt32(tmp);
+		}
+	}
+#endif
 	public static Stream considerCache(Stream str){
-		if(Helper.FileIOCacheSize > 0){
-			str = new BufferedStream(str, Helper.FileIOCacheSize);
+		if(FileIOCacheSize > 0){
+			str = new BufferedStream(str, FileIOCacheSize);
 		}
 		return str;
 	}

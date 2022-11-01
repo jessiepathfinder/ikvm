@@ -6,7 +6,7 @@ call clean.bat
 echo setting variables...
 ::DEFAULT IKVM.NET version, since 8.7.0.0 had a HUGE number of closed-source previews
 if not defined IKVM_VERSION set IKVM_VERSION=8.7.0.0
-if not defined IKVM_DOTNET_BUILD_ARGS set IKVM_DOTNET_BUILD_ARGS=
+if not defined IKVM_DOTNET_BUILD_ARGS set "IKVM_DOTNET_BUILD_ARGS= "
 set IKVM_BUILD_CONFIG=-c Release
 if '%IKVM_DEBUG%' equ 'true' set IKVM_BUILD_CONFIG=-c Debug
 if not defined IKVM_JAVAC_ARGS set IKVM_JAVAC_ARGS=-J-Xmx1536M -source 8 -target 8

@@ -1,7 +1,0 @@
-C:\Users\jessi\Desktop\IKVM.NewBuild\awt\obj\first_pass\IKVM.AWT.WinForms.8.csproj.AssemblyReference.cache
-C:\Users\jessi\Desktop\IKVM.NewBuild\awt\obj\first_pass\IKVM.AWT.WinForms.8.csproj.CoreCompileInputs.cache
-C:\Users\jessi\Desktop\IKVM.NewBuild\bin\IKVM.AWT.WinForms.dll
-C:\Users\jessi\Desktop\IKVM.NewBuild\bin\IKVM.AWT.WinForms.pdb
-C:\Users\jessi\Desktop\IKVM.NewBuild\awt\obj\first_pass\IKVM.AWT.WinForms.8.csproj.CopyComplete
-C:\Users\jessi\Desktop\IKVM.NewBuild\awt\obj\first_pass\IKVM.AWT.WinForms.dll
-C:\Users\jessi\Desktop\IKVM.NewBuild\awt\obj\first_pass\IKVM.AWT.WinForms.pdb

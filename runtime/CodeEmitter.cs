@@ -107,11 +107,6 @@ namespace IKVM.Internal
 		private static readonly MethodInfo monitorExit = JVM.Import(typeof(System.Threading.Monitor)).GetMethod("Exit", BindingFlags.Public | BindingFlags.Static, null, new Type[] { Types.Object }, null);
 		internal static readonly MethodInfo RefEq = JVM.Import(typeof(object)).GetMethod("ReferenceEquals", BindingFlags.Public | BindingFlags.Static, null, new Type[] { Types.Object, Types.Object }, null);
 
-		private static bool experimentalOptimizations {
-			get {
-				return Helper.experimentalOptimizations;
-			}
-		}
 		private static MethodInfo memoryBarrier;
 		private ILGenerator ilgen_real;
 #if !STATIC_COMPILER
@@ -2308,7 +2303,7 @@ namespace IKVM.Internal
 			OptimizePatterns();
 			CLRv4_x64_JIT_Workaround();
 			RemoveRedundantMemoryBarriers();
-			if (experimentalOptimizations)
+			if (Helper.experimentalOptimizations)
 			{
 				CheckInvariants();
 				MoveLocalDeclarationToBeginScope();

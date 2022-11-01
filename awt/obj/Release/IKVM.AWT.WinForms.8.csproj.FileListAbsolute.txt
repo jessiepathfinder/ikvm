@@ -1,2 +1,0 @@
-C:\Users\jessi\Desktop\IKVM.NewBuild\awt\obj\Release\IKVM.AWT.WinForms.8.csproj.AssemblyReference.cache
-C:\Users\jessi\Desktop\IKVM.NewBuild\awt\obj\Release\IKVM.AWT.WinForms.8.csproj.CoreCompileInputs.cache

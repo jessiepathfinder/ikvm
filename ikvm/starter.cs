@@ -287,28 +287,6 @@ public static class Starter
 				{
 					Console.Error.WriteLine("Unsupported option ignored: {0}", arg);
 				}
-				else if(arg.StartsWith("-Xoptimize:")){
-					try{
-						Helper.optpasses = (int)Convert.ToUInt32(arg.Substring(11));
-					} catch{
-						Console.Error.WriteLine("SORRY, IKVM.NET experimental optimizations disabled, reason: negative or invalid number of optimization passes.");
-					}
-				}
-				else if(arg.StartsWith("-Xfilecache:")){
-					try{
-						Helper.FileIOCacheSize = (int)Convert.ToUInt32(arg.Substring(12));
-					} catch{
-						Console.Error.WriteLine("SORRY, IKVM.NET file caching disabled, reason: invalid or negative cache size.");
-					}
-				}
-				else if(arg == "-Xextremeoptimize")
-				{
-					Helper.extremeOptimizations = true;
-				}
-				else if(arg == "-Xmtcompile")
-				{
-					Helper.useMultithreadedCompilation = true;
-				}
 				else
 				{
 					Console.Error.WriteLine("{0}: illegal argument", arg);
@@ -455,11 +433,6 @@ public static class Starter
 		Console.Error.WriteLine("    -Xnoclassgc       Disable class garbage collection");
 		Console.Error.WriteLine("    -Xnoglobbing      Disable argument globbing");
 		Console.Error.WriteLine("    -Xverify          Enable strict class file verification");
-		Console.Error.WriteLine("    -Xoptimize:n      Enable IKVM.NET experimental optimizations and use N passes of optimization");
-		Console.Error.WriteLine("    -Xextremeoptimize Enable extreme usage of IKVM.NET experimental optimizations");
-		Console.Error.WriteLine("                      Used by Jessie Lesbian to help YourKit .NET profiler catch hidden exceptions");
-		Console.Error.WriteLine("    -Xfilecache:size  Set file cache size in bytes (zero to disable)");
-		Console.Error.WriteLine("                      NOTE: This is cache size per FileInputStream/FileOutputStream, not global cache size!");
 		Console.Error.WriteLine();
 		Console.Error.WriteLine("The -X options are non-standard and subject to change without notice.");
 		Console.Error.WriteLine();

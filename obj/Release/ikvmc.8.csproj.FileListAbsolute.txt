@@ -1,8 +1,0 @@
-C:\Users\jessi\Desktop\IKVM.NewBuild\bin\ikvmc.exe.config
-C:\Users\jessi\Desktop\IKVM.NewBuild\bin\ikvmc.exe
-C:\Users\jessi\Desktop\IKVM.NewBuild\bin\IKVM.Reflection.pdb
-C:\Users\jessi\Desktop\IKVM.NewBuild\obj\Release\ikvmc.8.csproj.AssemblyReference.cache
-C:\Users\jessi\Desktop\IKVM.NewBuild\obj\Release\ikvmc.8.csproj.SuggestedBindingRedirects.cache
-C:\Users\jessi\Desktop\IKVM.NewBuild\obj\Release\ikvmc.8.csproj.CoreCompileInputs.cache
-C:\Users\jessi\Desktop\IKVM.NewBuild\obj\Release\ikvmc.8.csproj.CopyComplete
-C:\Users\jessi\Desktop\IKVM.NewBuild\obj\Release\ikvmc.exe

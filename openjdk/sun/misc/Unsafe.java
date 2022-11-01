@@ -197,18 +197,7 @@ public final class Unsafe
         }
         else
         {
-            Field field = getField(offset);
-            synchronized(field)
-            {
-                try
-                {
-                    field.set(obj, newValue);
-                }
-                catch(IllegalAccessException x)
-                {
-                    throw (InternalError)new InternalError().initCause(x);
-                }
-            }
+            getAndSetObject(obj, offset, newValue);
         }
     }
 
@@ -231,18 +220,7 @@ public final class Unsafe
         }
         else
         {
-            Field field = getField(offset);
-            synchronized(field)
-            {
-                try
-                {
-                    return field.get(obj);
-                }
-                catch(IllegalAccessException x)
-                {
-                    throw (InternalError)new InternalError().initCause(x);
-                }
-            }
+            return getObjectVolatile2(obj, offset);
         }
     }
 
@@ -258,6 +236,12 @@ public final class Unsafe
 	private static native long IKVM_GetLong(IntPtr offset);
 	@cli.System.Security.SecuritySafeCriticalAttribute.Annotation
 	private static native long IKVM_SetLong(IntPtr offset, long value);
+	
+	private static native Object getObjectVolatile2(Object obj, long offset);
+	private static native float getFloatVolatile2(Object obj, long offset);
+	private static native double getDoubleVolatile2(Object obj, long offset);
+	private static native void setFloatVolatile2(Object obj, long offset, float val);
+	private static native void setDoubleVolatile2(Object obj, long offset, double val);
 
     public final native boolean compareAndSwapInt(Object obj, long offset, int expect, int update);
 	@cli.System.Security.SecuritySafeCriticalAttribute.Annotation
@@ -271,25 +255,15 @@ public final class Unsafe
         }
         else
         {
-            Field field = getField(offset);
-            synchronized(field)
-            {
-                try
-                {
-                    field.setInt(obj, newValue);
-                }
-                catch(IllegalAccessException x)
-                {
-                    throw (InternalError)new InternalError().initCause(x);
-                }
-            }
+            getAndSetInt(obj, offset, newValue);
         }
     }
-
+	@cli.System.Security.SecuritySafeCriticalAttribute.Annotation
     public void putOrderedInt(Object obj, long offset, int newValue)
     {
         putIntVolatile(obj, offset, newValue);
     }
+	
 	@cli.System.Security.SecuritySafeCriticalAttribute.Annotation
     public int getIntVolatile(Object obj, long offset)
     {
@@ -302,21 +276,10 @@ public final class Unsafe
         }
         else
         {
-            Field field = getField(offset);
-            synchronized(field)
-            {
-                try
-                {
-                    return field.getInt(obj);
-                }
-                catch(IllegalAccessException x)
-                {
-                    throw (InternalError)new InternalError().initCause(x);
-                }
-            }
+            return getAndAddInt(obj, offset, 0);
         }
     }
-
+	@cli.System.Security.SecuritySafeCriticalAttribute.Annotation
     public final native boolean compareAndSwapLong(Object obj, long offset, long expect, long update);
 	@cli.System.Security.SecuritySafeCriticalAttribute.Annotation
     public void putLongVolatile(Object obj, long offset, long newValue)
@@ -327,21 +290,10 @@ public final class Unsafe
         }
         else
         {
-            Field field = getField(offset);
-            synchronized(field)
-            {
-                try
-                {
-                    field.setLong(obj, newValue);
-                }
-                catch(IllegalAccessException x)
-                {
-                    throw (InternalError)new InternalError().initCause(x);
-                }
-            }
+            getAndSetLong(obj, offset, newValue);
         }
     }
-
+	
     public void putOrderedLong(Object obj, long offset, long newValue)
     {
         putLongVolatile(obj, offset, newValue);
@@ -356,18 +308,7 @@ public final class Unsafe
         }
         else
         {
-            Field field = getField(offset);
-            synchronized(field)
-            {
-                try
-                {
-                    return field.getLong(obj);
-                }
-                catch(IllegalAccessException x)
-                {
-                    throw (InternalError)new InternalError().initCause(x);
-                }
-            }
+            return getAndAddLong(obj, offset, 0);
         }
     }
 	@cli.System.Security.SecuritySafeCriticalAttribute.Annotation
@@ -389,7 +330,7 @@ public final class Unsafe
             }
         }
     }
-
+	@cli.System.Security.SecuritySafeCriticalAttribute.Annotation
     public void putBooleanVolatile(Object obj, long offset, boolean newValue)
     {
 		if (obj instanceof cli.System.Array)
@@ -411,7 +352,7 @@ public final class Unsafe
             }
         }
     }
-
+	@cli.System.Security.SecuritySafeCriticalAttribute.Annotation
     public boolean getBoolean(Object obj, long offset)
     {
         if (obj instanceof cli.System.Array)
@@ -430,7 +371,7 @@ public final class Unsafe
             }
         }
     }
-
+	@cli.System.Security.SecuritySafeCriticalAttribute.Annotation
     public boolean getBooleanVolatile(Object obj, long offset)
     {
 		if (obj instanceof cli.System.Array)
@@ -472,7 +413,7 @@ public final class Unsafe
             }
         }
     }
-
+	@cli.System.Security.SecuritySafeCriticalAttribute.Annotation
     public void putByteVolatile(Object obj, long offset, byte newValue)
     {
 		Interlocked.MemoryBarrier();
@@ -498,7 +439,7 @@ public final class Unsafe
             }
         }
     }
-
+	@cli.System.Security.SecuritySafeCriticalAttribute.Annotation
     public byte getByteVolatile(Object obj, long offset)
     {
 		Interlocked.MemoryBarrier();
@@ -525,7 +466,7 @@ public final class Unsafe
             }
         }
     }
-
+	@cli.System.Security.SecuritySafeCriticalAttribute.Annotation
     public void putCharVolatile(Object obj, long offset, char newValue)
     {
 		Interlocked.MemoryBarrier();
@@ -551,7 +492,7 @@ public final class Unsafe
             }
         }
     }
-
+	@cli.System.Security.SecuritySafeCriticalAttribute.Annotation
     public char getCharVolatile(Object obj, long offset)
     {
 		Interlocked.MemoryBarrier();
@@ -578,7 +519,7 @@ public final class Unsafe
             }
         }
     }
-
+	@cli.System.Security.SecuritySafeCriticalAttribute.Annotation
     public void putShortVolatile(Object obj, long offset, short newValue)
     {
 		Interlocked.MemoryBarrier();
@@ -604,7 +545,7 @@ public final class Unsafe
             }
         }
     }
-
+	@cli.System.Security.SecuritySafeCriticalAttribute.Annotation
     public short getShortVolatile(Object obj, long offset)
     {
 		Interlocked.MemoryBarrier();
@@ -669,12 +610,19 @@ public final class Unsafe
             }
         }
     }
-
+	@cli.System.Security.SecuritySafeCriticalAttribute.Annotation
     public void putFloatVolatile(Object obj, long offset, float newValue)
     {
-		Interlocked.MemoryBarrier();
-        putFloat(obj, offset, newValue);
-		Interlocked.MemoryBarrier();
+		if (obj instanceof cli.System.Array)
+        {
+			Interlocked.MemoryBarrier();
+            WriteInt32(obj, offset, Float.floatToRawIntBits(newValue));
+			Interlocked.MemoryBarrier();
+        }
+        else
+        {
+            setFloatVolatile2(obj, offset, newValue);
+        }
     }
 	@cli.System.Security.SecuritySafeCriticalAttribute.Annotation
     public float getFloat(Object obj, long offset)
@@ -698,10 +646,17 @@ public final class Unsafe
 
     public float getFloatVolatile(Object obj, long offset)
     {
-		Interlocked.MemoryBarrier();
-        float res = getFloat(obj, offset);
-		Interlocked.MemoryBarrier();
-		return res;
+		if (obj instanceof cli.System.Array)
+        {
+			Interlocked.MemoryBarrier();
+            float tmp = Float.intBitsToFloat(ReadInt32(obj, offset));
+			Interlocked.MemoryBarrier();
+			return tmp;
+        }
+        else
+        {
+            return getFloatVolatile2(obj, offset);
+        }
     }
 	@cli.System.Security.SecuritySafeCriticalAttribute.Annotation
     public void putLong(Object obj, long offset, long newValue)
@@ -741,6 +696,7 @@ public final class Unsafe
             }
         }
     }
+	@cli.System.Security.SecuritySafeCriticalAttribute.Annotation
     public void putDouble(Object obj, long offset, double newValue)
     {
         if (obj instanceof cli.System.Array)
@@ -759,7 +715,7 @@ public final class Unsafe
             }
         }
     }
-
+	@cli.System.Security.SecuritySafeCriticalAttribute.Annotation
     public void putDoubleVolatile(Object obj, long offset, double newValue)
     {
         if (obj instanceof cli.System.Array)
@@ -768,18 +724,7 @@ public final class Unsafe
         }
         else
         {
-			Field field = getField(offset);
-            synchronized(field)
-            {
-                try
-                {
-                    field.setDouble(obj, newValue);
-                }
-                catch(IllegalAccessException x)
-                {
-                    throw (InternalError)new InternalError().initCause(x);
-                }
-            }
+			setDoubleVolatile2(obj, offset, newValue);
         }
     }
 	@cli.System.Security.SecuritySafeCriticalAttribute.Annotation
@@ -810,18 +755,7 @@ public final class Unsafe
         }
         else
         {
-			Field field = getField(offset);
-            synchronized(field)
-            {
-                try
-                {
-                    return field.getDouble(obj);
-                }
-                catch(IllegalAccessException x)
-                {
-                    throw (InternalError)new InternalError().initCause(x);
-                }
-            }
+			return getDoubleVolatile2(obj, offset);
         }
     }
 

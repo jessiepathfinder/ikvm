@@ -1,9 +1,0 @@
-C:\Users\jessi\Desktop\IKVM.NewBuild\bin\ikvmstub.exe.config
-C:\Users\jessi\Desktop\IKVM.NewBuild\bin\ikvmstub.exe
-C:\Users\jessi\Desktop\IKVM.NewBuild\bin\ikvmstub.pdb
-C:\Users\jessi\Desktop\IKVM.NewBuild\ikvmstub\obj\Debug\ikvmstub.8.csproj.AssemblyReference.cache
-C:\Users\jessi\Desktop\IKVM.NewBuild\ikvmstub\obj\Debug\ikvmstub.8.csproj.SuggestedBindingRedirects.cache
-C:\Users\jessi\Desktop\IKVM.NewBuild\ikvmstub\obj\Debug\ikvmstub.8.csproj.CoreCompileInputs.cache
-C:\Users\jessi\Desktop\IKVM.NewBuild\ikvmstub\obj\Debug\ikvmstub.8.csproj.CopyComplete
-C:\Users\jessi\Desktop\IKVM.NewBuild\ikvmstub\obj\Debug\ikvmstub.exe
-C:\Users\jessi\Desktop\IKVM.NewBuild\ikvmstub\obj\Debug\ikvmstub.pdb

@@ -35,6 +35,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using IKVM.Internal;
 using System.Collections.Concurrent;
+using System.Linq.Expressions;
 
 public static class Java_sun_misc_GC
 {
@@ -295,6 +296,83 @@ public static class Java_sun_misc_Perf
 
 public static class Java_sun_misc_Unsafe
 {
+	private static readonly MethodInfo compareExchangeObject = typeof(Interlocked).GetMethod("CompareExchange", new System.Type[] { typeof(object).MakeByRefType(), typeof(object), typeof(object) });
+	private static readonly MethodInfo exchangeObject = typeof(Interlocked).GetMethod("Exchange", new System.Type[] { typeof(object).MakeByRefType(), typeof(object) });
+	private static readonly ConcurrentDictionary<FieldInfo, Func<object, object, object, object>> compareExchangeObjectCache = new ConcurrentDictionary<FieldInfo, Func<object, object, object, object>>();
+	private static readonly ConcurrentDictionary<FieldInfo, Func<object, object, object>> exchangeObjectCache = new ConcurrentDictionary<FieldInfo, Func<object, object, object>>();
+
+	private static Func<object, object, object, object> CreateCompareExchangeObjectCall(FieldInfo valueField)
+	{
+		System.Type type = valueField.FieldType;
+		var instanceParam = Expression.Parameter(typeof(object));
+		var field = Expression.Field(Expression.Convert(instanceParam, valueField.DeclaringType), valueField);
+		var valueParam = Expression.Parameter(type);
+		var comparandParam = Expression.Parameter(type);
+		var lambda = Expression.Lambda<Func<object, object, object, object>>(Expression.Call(null, compareExchangeObject, field, valueParam, comparandParam), instanceParam, valueParam, comparandParam);
+		return lambda.Compile();
+	}
+	private static Func<object, object, object> CreateExchangeObjectCall(FieldInfo valueField)
+	{
+		System.Type type = valueField.FieldType;
+		var instanceParam = Expression.Parameter(typeof(object));
+		var field = Expression.Field(Expression.Convert(instanceParam, valueField.DeclaringType), valueField);
+		var valueParam = Expression.Parameter(type);
+		var lambda = Expression.Lambda<Func<object, object, object>>(Expression.Call(null, exchangeObject, field, valueParam), instanceParam, valueParam);
+		return lambda.Compile();
+	}
+
+	private static class TripleAtomicHelper<T>
+	{
+		private static readonly ConcurrentDictionary<FieldInfo, Func<object, T, T, T>> compareExchangeCache = new ConcurrentDictionary<FieldInfo, Func<object, T, T, T>>();
+		private static readonly ConcurrentDictionary<FieldInfo, Func<object, T, T>> exchangeCache = new ConcurrentDictionary<FieldInfo, Func<object, T, T>>();
+		private static readonly ConcurrentDictionary<FieldInfo, Func<object, T, T>> addCache = new ConcurrentDictionary<FieldInfo, Func<object, T, T>>();
+		public static T CompareExchange(object obj, FieldInfo fieldInfo, T val, T compare)
+		{
+			return compareExchangeCache.GetOrAdd(fieldInfo, CreateCompareExchangeCall)(obj, val, compare);
+		}
+		public static T Exchange(object obj, FieldInfo fieldInfo, T val)
+		{
+			return exchangeCache.GetOrAdd(fieldInfo, CreateExchangeCall)(obj, val);
+		}
+		public static T Add(object obj, FieldInfo fieldInfo, T val)
+		{
+			return addCache.GetOrAdd(fieldInfo, CreateAddCall)(obj, val);
+		}
+		private static readonly MethodInfo compareExchange = typeof(Interlocked).GetMethod("CompareExchange", new System.Type[] { typeof(T).MakeByRefType(), typeof(T), typeof(T) });
+		private static readonly MethodInfo exchange = typeof(Interlocked).GetMethod("Exchange", new System.Type[] { typeof(T).MakeByRefType(), typeof(T) });
+		private static readonly MethodInfo add = typeof(Interlocked).GetMethod("Add", new System.Type[] { typeof(T).MakeByRefType(), typeof(T) });
+		private static Func<object, T, T, T> CreateCompareExchangeCall(FieldInfo valueField)
+		{
+			if (valueField.FieldType != typeof(T))
+				throw new ArgumentOutOfRangeException(nameof(valueField), $"Expected {typeof(T).Name} type field but got {valueField.FieldType.Name}");
+			var instanceParam = Expression.Parameter(typeof(object));
+			var field = Expression.Field(Expression.Convert(instanceParam, valueField.DeclaringType), valueField);
+			var valueParam = Expression.Parameter(typeof(T));
+			var comparandParam = Expression.Parameter(typeof(T));
+			var lambda = Expression.Lambda<Func<object, T, T, T>>(Expression.Call(null, compareExchange, field, valueParam, comparandParam), instanceParam, valueParam, comparandParam);
+			return lambda.Compile();
+		}
+		private static Func<object, T, T> CreateExchangeCall(FieldInfo valueField)
+		{
+			if (valueField.FieldType != typeof(T))
+				throw new ArgumentOutOfRangeException(nameof(valueField), $"Expected {typeof(T).Name} type field but got {valueField.FieldType.Name}");
+			var instanceParam = Expression.Parameter(typeof(object));
+			var field = Expression.Field(Expression.Convert(instanceParam, valueField.DeclaringType), valueField);
+			var valueParam = Expression.Parameter(typeof(T));
+			var lambda = Expression.Lambda<Func<object, T, T>>(Expression.Call(null, exchange, field, valueParam), instanceParam, valueParam);
+			return lambda.Compile();
+		}
+		private static Func<object, T, T> CreateAddCall(FieldInfo valueField)
+		{
+			if (valueField.FieldType != typeof(T))
+				throw new ArgumentOutOfRangeException(nameof(valueField), $"Expected {typeof(T).Name} type field but got {valueField.FieldType.Name}");
+			var instanceParam = Expression.Parameter(typeof(object));
+			var field = Expression.Field(Expression.Convert(instanceParam, valueField.DeclaringType), valueField);
+			var valueParam = Expression.Parameter(typeof(T));
+			var lambda = Expression.Lambda<Func<object, T, T>>(Expression.Call(null, add, field, valueParam), instanceParam, valueParam);
+			return lambda.Compile();
+		}
+	}
 	public static java.lang.reflect.Field createFieldAndMakeAccessible(java.lang.Class c, string fieldName)
 	{
 #if FIRST_PASS
@@ -529,7 +607,7 @@ public static class Java_sun_misc_Unsafe
 		} else
 		{
 			Stats.Log("compareAndSwapInt.", offset);
-			return ((CompareExchangeInt32)GetDelegate(offset))(obj, update, expect) == expect;
+			return TripleAtomicHelper<int>.CompareExchange(obj, GetFieldInfo(offset), update, expect) == expect;
 		}
 	}
 
@@ -546,7 +624,7 @@ public static class Java_sun_misc_Unsafe
 		{
 			Stats.Log("compareAndSwapLong.", offset);
 
-			return ((CompareExchangeInt64)GetDelegate(offset))(obj, update, expect) == expect;
+			return TripleAtomicHelper<long>.CompareExchange(obj, GetFieldInfo(offset), update, expect) == expect;
 		}
 	}
 	public static int getAndAddInt(object thisUnsafe, object obj, long offset, int delta)
@@ -558,14 +636,7 @@ public static class Java_sun_misc_Unsafe
 			GCHandle handle = GCHandle.Alloc(obj, GCHandleType.Pinned);
 			return IKVM_AddInt((IntPtr)(handle.AddrOfPinnedObject().ToInt64() + offset), delta);
 		} else {
-			while (true) {
-#if !FIRST_PASS
-				int i = ((sun.misc.Unsafe)thisUnsafe).getIntVolatile(obj, offset);
-				if (compareAndSwapInt(null, obj, offset, i, i + delta)) {
-					return i;
-				}
-#endif
-			}
+			return TripleAtomicHelper<int>.Add(obj, GetFieldInfo(offset), delta);
 		}
 	}
 	public static long getAndAddLong(object thisUnsafe, object obj, long offset, long delta)
@@ -577,14 +648,7 @@ public static class Java_sun_misc_Unsafe
 			GCHandle handle = GCHandle.Alloc(obj, GCHandleType.Pinned);
 			return IKVM_AddLong((IntPtr)(handle.AddrOfPinnedObject().ToInt64() + offset), delta);
 		} else {
-			while (true) {
-#if !FIRST_PASS
-				long i = ((sun.misc.Unsafe)thisUnsafe).getLongVolatile(obj, offset);
-				if (compareAndSwapLong(null, obj, offset, i, i + delta)) {
-					return i;
-				}
-#endif
-			}
+			return TripleAtomicHelper<long>.Add(obj, GetFieldInfo(offset), delta);
 		}
 	}
 	public static int getAndSetInt(object thisUnsafe, object obj, long offset, int delta)
@@ -597,32 +661,34 @@ public static class Java_sun_misc_Unsafe
 			return IKVM_ExchangeInt((IntPtr)(handle.AddrOfPinnedObject().ToInt64() + offset), delta);
 		}
 		else {
-			while (true) {
-#if !FIRST_PASS
-				int i = ((sun.misc.Unsafe)thisUnsafe).getIntVolatile(obj, offset);
-				if (compareAndSwapInt(null, obj, offset, i, delta)) {
-					return i;
-				}
-#endif
-			}
+			return TripleAtomicHelper<int>.Exchange(obj, GetFieldInfo(offset), delta);
 		}
+	}
+	public static float getFloatVolatile2(object obj, long offset)
+	{
+		return TripleAtomicHelper<float>.CompareExchange(obj, GetFieldInfo(offset), 0, 0);
+	}
+	public static double getDoubleVolatile2(object obj, long offset)
+	{
+		return TripleAtomicHelper<double>.CompareExchange(obj, GetFieldInfo(offset), 0, 0);
+	}
+	public static void setFloatVolatile2(object obj, long offset, float val)
+	{
+		TripleAtomicHelper<float>.Exchange(obj, GetFieldInfo(offset), val);
+	}
+	public static void setDoubleVolatile2(object obj, long offset, double val)
+	{
+		TripleAtomicHelper<double>.Exchange(obj, GetFieldInfo(offset), val);
+	}
+
+	public static object getObjectVolatile2(object obj, long offset){
+		return compareExchangeObjectCache.GetOrAdd(GetFieldInfo(offset), CreateCompareExchangeObjectCall)(obj, null, null);
 	}
 
 	public static object getAndSetObject(object thisUnsafe, object o, long offset, object newValue){
 		object[] array = o as object[];
 		if(ReferenceEquals(array, null)){
-			CompareExchangeObject tmp = (CompareExchangeObject)GetDelegate(offset);
-			while(true){
-#if FIRST_PASS
-				Object val = null;
-#else
-				Object val = ((sun.misc.Unsafe)thisUnsafe).getObjectVolatile(o, offset);
-#endif
-				if (ReferenceEquals(tmp(o, newValue, val), val))
-				{
-					return val;
-				}
-			}
+			return exchangeObjectCache.GetOrAdd(GetFieldInfo(offset), CreateExchangeObjectCall)(o, newValue);
 		} else{
 			if(offset % 4 == 0){
 				return Interlocked.Exchange(ref array[offset / 4], newValue);
@@ -641,87 +707,15 @@ public static class Java_sun_misc_Unsafe
 			return IKVM_ExchangeLong((IntPtr)(handle.AddrOfPinnedObject().ToInt64() + offset), delta);
 		}
 		else {
-			while (true)
-			{
-#if !FIRST_PASS
-				long i = ((sun.misc.Unsafe)thisUnsafe).getLongVolatile(obj, offset);
-				if (compareAndSwapLong(null, obj, offset, i, delta)) {
-					return i;
-				}
-#endif
-			}
+			return TripleAtomicHelper<long>.Exchange(obj, GetFieldInfo(offset), delta);
 		}
 	}
-	private delegate int CompareExchangeInt32(object obj, int value, int comparand);
-	private delegate long CompareExchangeInt64(object obj, long value, long comparand);
-	private delegate object CompareExchangeObject(object obj, object value, object comparand);
-	private static readonly ConcurrentDictionary<long, WeakReference> cacheCompareExchange = new ConcurrentDictionary<long, WeakReference>();
-
-	private static void InterlockedResize<T>(ref T[] array, int newSize)
-	{
-		for (; ; )
-		{
-			T[] oldArray = array;
-			T[] newArray = oldArray;
-			if (oldArray.Length >= newSize)
-			{
-				return;
-			}
-			Array.Resize(ref newArray, newSize);
-			if (Interlocked.CompareExchange(ref array, newArray, oldArray) == oldArray)
-			{
-				return;
-			}
-		}
-	}
-
-	private static Delegate CreateCompareExchange(long fieldOffset)
-	{
 #if FIRST_PASS
-		return null;
-#else
-		FieldInfo field = GetFieldInfo(fieldOffset);
-		bool primitive = field.FieldType.IsPrimitive;
-		Type signatureType = primitive ? field.FieldType : typeof(object);
-		MethodInfo compareExchange;
-		Type delegateType;
-		if (signatureType == typeof(int))
-		{
-			compareExchange = InterlockedMethods.CompareExchangeInt32;
-			delegateType = typeof(CompareExchangeInt32);
-		}
-		else if (signatureType == typeof(long))
-		{
-			compareExchange = InterlockedMethods.CompareExchangeInt64;
-			delegateType = typeof(CompareExchangeInt64);
-		}
-		else
-		{
-			compareExchange = InterlockedMethods.CompareExchangeOfT.MakeGenericMethod(field.FieldType);
-			delegateType = typeof(CompareExchangeObject);
-		}
-		DynamicMethod dm = new DynamicMethod("CompareExchange", signatureType, new Type[] { typeof(object), signatureType, signatureType }, field.DeclaringType);
-		ILGenerator ilgen = dm.GetILGenerator();
-		// note that we don't bother will special casing static fields, because it is legal to use ldflda on a static field
-		ilgen.Emit(OpCodes.Ldarg_0);
-		ilgen.Emit(OpCodes.Castclass, field.DeclaringType);
-		ilgen.Emit(OpCodes.Ldflda, field);
-		ilgen.Emit(OpCodes.Ldarg_1);
-		if (!primitive)
-		{
-			ilgen.Emit(OpCodes.Castclass, field.FieldType);
-		}
-		ilgen.Emit(OpCodes.Ldarg_2);
-		if (!primitive)
-		{
-			ilgen.Emit(OpCodes.Castclass, field.FieldType);
-		}
-		ilgen.Emit(OpCodes.Call, compareExchange);
-		ilgen.Emit(OpCodes.Ret);
-		return dm.CreateDelegate(delegateType);
-#endif
+	private static FieldInfo GetFieldInfo(long offset)
+	{
+		throw new NotImplementedException();
 	}
-#if !FIRST_PASS
+#else
 	private static FieldInfo GetFieldInfo(long offset)
 	{
 		FieldWrapper fw = FieldWrapper.FromField(sun.misc.Unsafe.getField(offset));
@@ -740,7 +734,7 @@ public static class Java_sun_misc_Unsafe
 		if (ReferenceEquals(array, null))
 		{
 			Stats.Log("compareAndSwapObject.", offset);
-			return ((CompareExchangeObject)GetDelegate(offset))(obj, update, expect) == expect;
+			return ReferenceEquals(compareExchangeObjectCache.GetOrAdd(GetFieldInfo(offset), CreateCompareExchangeObjectCall)(obj, expect, update), expect);
 		}
 		else
 		{
@@ -752,47 +746,6 @@ public static class Java_sun_misc_Unsafe
 			}
 		}
 #endif
-	}
-
-	private sealed class SwapWrapper{
-		private readonly long offset;
-		public readonly Delegate underlying;
-
-		public SwapWrapper(long offset)
-		{
-			this.offset = offset;
-			underlying = CreateCompareExchange(offset);
-		}
-		~SwapWrapper(){
-			WeakReference wr;
-			cacheCompareExchange.TryRemove(offset, out wr);
-		}
-	}
-
-	private static Delegate GetDelegate(long offset){
-		SwapWrapper compareExchange;
-		WeakReference wr;
-		if (cacheCompareExchange.TryGetValue(offset, out wr))
-		{
-			compareExchange = (SwapWrapper)wr.Target;
-			if (ReferenceEquals(compareExchange, null))
-			{
-				compareExchange = new SwapWrapper(offset);
-				
-				if(!cacheCompareExchange.TryAdd(offset, new WeakReference(compareExchange, false))){
-					GC.SuppressFinalize(compareExchange);
-				}
-			}
-		}
-		else
-		{
-			compareExchange = new SwapWrapper(offset);
-			if (!cacheCompareExchange.TryAdd(offset, new WeakReference(compareExchange, false)))
-			{
-				GC.SuppressFinalize(compareExchange);
-			}
-		}
-		return compareExchange.underlying;
 	}
 
 	abstract class Atomic

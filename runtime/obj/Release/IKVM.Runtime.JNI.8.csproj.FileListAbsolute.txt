@@ -1,2 +1,0 @@
-C:\Users\jessi\Desktop\IKVM.NewBuild\runtime\obj\Release\IKVM.Runtime.JNI.8.csproj.AssemblyReference.cache
-C:\Users\jessi\Desktop\IKVM.NewBuild\runtime\obj\Release\IKVM.Runtime.JNI.8.csproj.CoreCompileInputs.cache
