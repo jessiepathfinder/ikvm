@@ -1,6 +1,9 @@
-# IKVMClass
-[![Build status](https://ci.appveyor.com/api/projects/status/kcatl3j9bq54rtp6?svg=true)](https://ci.appveyor.com/project/jessielesbian/ikvmclass)
+# Jessie Lesbian's IKVM.NET fork (aka Jessie Lesbian's cute-looking .NET-based Java Virtual Machine)
 
-IKVMClass is an OpenJDK fork built for IKVM.NET. Contains some work from Jeroen Frijters, Windward Studios, and ikvm-revived as well.
-## Build
-You need to add [this ikvmstub file](https://mega.nz/file/cqARyYSR#011dw2hXY-eHVU2-I8-3e9Yl39kB2FWnkp4_U4rLFMM) to your boot class path for the build, cd into /OpenJDK and ````javac -g:none -sourcepath sourcepath282 -bootclasspath ikvmstubs.jar````!
+[![Build status](https://ci.appveyor.com/api/projects/status/ikpd1g6nk24b8pa7?svg=true)](https://ci.appveyor.com/project/jessielesbian/ikvm)
+
+## YourKit Sponsorship
+
+YourKit supports open source projects with innovative and intelligent tools for monitoring and profiling Java and .NET applications. YourKit is the creator of <a href="https://www.yourkit.com/java/profiler/">YourKit Java Profiler</a>, <a href="https://www.yourkit.com/.net/profiler/">YourKit .NET Profiler</a>, and <a href="https://www.yourkit.com/youmonitor/">YourKit YouMonitor</a>.
+
+![this software is proudly made by LGBT programmers](https://raw.githubusercontent.com/jessielesbian/ikvm/master/ikvmbadge.png)
