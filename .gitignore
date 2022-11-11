@@ -34,8 +34,6 @@ runtime\*.jar
 tools\*.exe
 tools\*.dll
 tools\pubkey.txt
-nuget
-packages
-.vs\*
+.vs/*
 *.cache
 *.pdb
