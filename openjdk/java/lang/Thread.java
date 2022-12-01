@@ -2535,8 +2535,8 @@ class Thread implements Runnable {
             throw new IllegalArgumentException("nanosecond timeout value out of range");
         }
 		timeout = (timeout * 1000) + (nanos / 1000);
-		if(timeout > 2147483647){
-			timeout = 0; //no timeout
+		if(timeout > 2147483647 || timeout < -1){
+			timeout = -1;
 		}
 		Thread t = currentThread();
         t.enterInterruptableWait(timeout != 0);
