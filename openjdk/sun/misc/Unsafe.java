@@ -260,7 +260,6 @@ public final class Unsafe
 	private static native long IKVM_SetLong(IntPtr offset, long value);
 
     public final native boolean compareAndSwapInt(Object obj, long offset, int expect, int update);
-	@cli.System.Security.SecuritySafeCriticalAttribute.Annotation
     public void putIntVolatile(Object obj, long offset, int newValue)
     {
 		if (obj instanceof cli.System.Array)
@@ -290,7 +289,6 @@ public final class Unsafe
     {
         putIntVolatile(obj, offset, newValue);
     }
-	@cli.System.Security.SecuritySafeCriticalAttribute.Annotation
     public int getIntVolatile(Object obj, long offset)
     {
 		if (obj instanceof cli.System.Array)
@@ -318,7 +316,6 @@ public final class Unsafe
     }
 
     public final native boolean compareAndSwapLong(Object obj, long offset, long expect, long update);
-	@cli.System.Security.SecuritySafeCriticalAttribute.Annotation
     public void putLongVolatile(Object obj, long offset, long newValue)
     {
 		if (obj instanceof cli.System.Array)
@@ -346,7 +343,6 @@ public final class Unsafe
     {
         putLongVolatile(obj, offset, newValue);
     }
-	@cli.System.Security.SecuritySafeCriticalAttribute.Annotation
     public long getLongVolatile(Object obj, long offset)
     {
         if (obj instanceof cli.System.Array)
@@ -370,7 +366,6 @@ public final class Unsafe
             }
         }
     }
-	@cli.System.Security.SecuritySafeCriticalAttribute.Annotation
     public void putBoolean(Object obj, long offset, boolean newValue)
     {
         if (obj instanceof cli.System.Array)
@@ -453,7 +448,6 @@ public final class Unsafe
             }
         }
     }
-	@cli.System.Security.SecuritySafeCriticalAttribute.Annotation
     public void putByte(Object obj, long offset, byte newValue)
     {
         if (obj instanceof cli.System.Array)
@@ -479,7 +473,6 @@ public final class Unsafe
         putByte(obj, offset, newValue);
 		Interlocked.MemoryBarrier();
     }
-	@cli.System.Security.SecuritySafeCriticalAttribute.Annotation
     public byte getByte(Object obj, long offset)
     {
         if (obj instanceof cli.System.Array)
@@ -506,7 +499,6 @@ public final class Unsafe
 		Interlocked.MemoryBarrier();
 		return res;
     }
-	@cli.System.Security.SecuritySafeCriticalAttribute.Annotation
     public void putChar(Object obj, long offset, char newValue)
     {
         if (obj instanceof cli.System.Array)
@@ -532,7 +524,6 @@ public final class Unsafe
         putChar(obj, offset, newValue);
 		Interlocked.MemoryBarrier();
     }
-	@cli.System.Security.SecuritySafeCriticalAttribute.Annotation
     public char getChar(Object obj, long offset)
     {
         if (obj instanceof cli.System.Array)
@@ -559,7 +550,6 @@ public final class Unsafe
 		Interlocked.MemoryBarrier();
 		return res;
     }
-	@cli.System.Security.SecuritySafeCriticalAttribute.Annotation
     public void putShort(Object obj, long offset, short newValue)
     {
         if (obj instanceof cli.System.Array)
@@ -585,7 +575,6 @@ public final class Unsafe
         putShort(obj, offset, newValue);
 		Interlocked.MemoryBarrier();
     }
-	@cli.System.Security.SecuritySafeCriticalAttribute.Annotation
     public short getShort(Object obj, long offset)
     {
         if (obj instanceof cli.System.Array)
@@ -612,7 +601,6 @@ public final class Unsafe
 		Interlocked.MemoryBarrier();
 		return res;
     }
-	@cli.System.Security.SecuritySafeCriticalAttribute.Annotation
     public void putInt(Object obj, long offset, int newValue)
     {
         if (obj instanceof cli.System.Array)
@@ -631,7 +619,6 @@ public final class Unsafe
             }
         }
     }
-	@cli.System.Security.SecuritySafeCriticalAttribute.Annotation
     public int getInt(Object obj, long offset)
     {
         if (obj instanceof cli.System.Array)
@@ -650,7 +637,6 @@ public final class Unsafe
             }
         }
     }
-	@cli.System.Security.SecuritySafeCriticalAttribute.Annotation
     public void putFloat(Object obj, long offset, float newValue)
     {
         if (obj instanceof cli.System.Array)
@@ -676,7 +662,6 @@ public final class Unsafe
         putFloat(obj, offset, newValue);
 		Interlocked.MemoryBarrier();
     }
-	@cli.System.Security.SecuritySafeCriticalAttribute.Annotation
     public float getFloat(Object obj, long offset)
     {
         if (obj instanceof cli.System.Array)
@@ -703,7 +688,6 @@ public final class Unsafe
 		Interlocked.MemoryBarrier();
 		return res;
     }
-	@cli.System.Security.SecuritySafeCriticalAttribute.Annotation
     public void putLong(Object obj, long offset, long newValue)
     {
         if (obj instanceof cli.System.Array)
@@ -722,7 +706,6 @@ public final class Unsafe
             }
         }
     }
-	@cli.System.Security.SecuritySafeCriticalAttribute.Annotation
     public long getLong(Object obj, long offset)
     {
         if (obj instanceof cli.System.Array)
@@ -782,7 +765,6 @@ public final class Unsafe
             }
         }
     }
-	@cli.System.Security.SecuritySafeCriticalAttribute.Annotation
     public double getDouble(Object obj, long offset)
     {
         if (obj instanceof cli.System.Array)
@@ -1359,13 +1341,9 @@ public final class Unsafe
     {
         return cli.System.Threading.Monitor.TryEnter(o);
     }
-	@cli.System.Security.SecuritySafeCriticalAttribute.Annotation
     public native final int getAndAddInt(Object o, long offset, int delta);
-	@cli.System.Security.SecuritySafeCriticalAttribute.Annotation
     public native final long getAndAddLong(Object o, long offset, long delta);
-	@cli.System.Security.SecuritySafeCriticalAttribute.Annotation
     public native final int getAndSetInt(Object o, long offset, int newValue);
-	@cli.System.Security.SecuritySafeCriticalAttribute.Annotation
     public native final long getAndSetLong(Object o, long offset, long newValue);
 
     public native final Object getAndSetObject(Object o, long offset, Object newValue);
