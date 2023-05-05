@@ -35,6 +35,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using IKVM.Internal;
 using System.Collections.Concurrent;
+using Field = java.lang.reflect.Field;
+using System.Runtime.CompilerServices;
 
 public static class Java_sun_misc_GC
 {
@@ -371,6 +373,25 @@ public static class Java_sun_misc_Unsafe
 		handle.Free();
 		return value;
 	}
+	[SecuritySafeCritical]
+	public static float ReadFloat2(object obj, long offset)
+	{
+		Stats.Log("ReadFloat2");
+		CheckArrayBounds(obj, offset, 4);
+		GCHandle handle = GCHandle.Alloc(obj, GCHandleType.Pinned);
+		float value = ToRef2<float>((IntPtr)(handle.AddrOfPinnedObject().ToInt64() + offset));
+		handle.Free();
+		return value;
+	}
+	[SecuritySafeCritical]
+	public static void WriteFloat2(object obj, long offset, float value)
+	{
+		Stats.Log("WriteFloat2");
+		CheckArrayBounds(obj, offset, 4);
+		GCHandle handle = GCHandle.Alloc(obj, GCHandleType.Pinned);
+		ToRef2<float>((IntPtr)(handle.AddrOfPinnedObject().ToInt64() + offset)) = value;
+		handle.Free();
+	}
 
 	[SecuritySafeCritical]
 	public static long ReadInt64(object obj, long offset, bool atomic)
@@ -419,7 +440,131 @@ public static class Java_sun_misc_Unsafe
 		handle.Free();
 	}
 
-	public static void throwException(object thisUnsafe, Exception x)
+	private static unsafe ref T ToRef2<T>(IntPtr intPtr){
+		return ref Unsafe.AsRef<T>(intPtr.ToPointer());
+	}
+
+	[SecuritySafeCritical]
+	public static byte ReadByteVolatile(object obj, long offset)
+	{
+		Stats.Log("ReadByteVolatile");
+		CheckArrayBounds(obj, offset, 1);
+		GCHandle handle = GCHandle.Alloc(obj, GCHandleType.Pinned);
+		byte value = Volatile.Read(ref ToRef2<byte>((IntPtr)(handle.AddrOfPinnedObject().ToInt64() + offset)));
+		handle.Free();
+		return value;
+	}
+
+	[SecuritySafeCritical]
+	public static void WriteByteVolatile(object obj, long offset, byte value)
+	{
+		Stats.Log("WriteByteVolatile");
+		CheckArrayBounds(obj, offset, 2);
+		GCHandle handle = GCHandle.Alloc(obj, GCHandleType.Pinned);
+		Volatile.Write(ref ToRef2<byte>((IntPtr)(handle.AddrOfPinnedObject().ToInt64() + offset)), value);
+		handle.Free();
+	}
+	[SecuritySafeCritical]
+	public static short ReadShortVolatile(object obj, long offset)
+	{
+		Stats.Log("ReadShortVolatile");
+		CheckArrayBounds(obj, offset, 1);
+		GCHandle handle = GCHandle.Alloc(obj, GCHandleType.Pinned);
+		short value = Volatile.Read(ref ToRef2<short>((IntPtr)(handle.AddrOfPinnedObject().ToInt64() + offset)));
+		handle.Free();
+		return value;
+	}
+
+	[SecuritySafeCritical]
+	public static void WriteShortVolatile(object obj, long offset, short value)
+	{
+		Stats.Log("WriteShortVolatile");
+		CheckArrayBounds(obj, offset, 2);
+		GCHandle handle = GCHandle.Alloc(obj, GCHandleType.Pinned);
+		Volatile.Write(ref ToRef2<short>((IntPtr)(handle.AddrOfPinnedObject().ToInt64() + offset)), value);
+		handle.Free();
+	}
+	[SecuritySafeCritical]
+	public static int ReadIntVolatile(object obj, long offset)
+	{
+		Stats.Log("ReadIntVolatile");
+		CheckArrayBounds(obj, offset, 1);
+		GCHandle handle = GCHandle.Alloc(obj, GCHandleType.Pinned);
+		int value = Volatile.Read(ref ToRef2<int>((IntPtr)(handle.AddrOfPinnedObject().ToInt64() + offset)));
+		handle.Free();
+		return value;
+	}
+
+	[SecuritySafeCritical]
+	public static void WriteIntVolatile(object obj, long offset, int value)
+	{
+		Stats.Log("WriteIntVolatile");
+		CheckArrayBounds(obj, offset, 2);
+		GCHandle handle = GCHandle.Alloc(obj, GCHandleType.Pinned);
+		Volatile.Write(ref ToRef2<int>((IntPtr)(handle.AddrOfPinnedObject().ToInt64() + offset)), value);
+		handle.Free();
+	}
+	[SecuritySafeCritical]
+	public static float ReadFloatVolatile(object obj, long offset)
+	{
+		Stats.Log("ReadFloatVolatile");
+		CheckArrayBounds(obj, offset, 1);
+		GCHandle handle = GCHandle.Alloc(obj, GCHandleType.Pinned);
+		float value = Volatile.Read(ref ToRef2<int>((IntPtr)(handle.AddrOfPinnedObject().ToInt64() + offset)));
+		handle.Free();
+		return value;
+	}
+
+	[SecuritySafeCritical]
+	public static void WriteFloatVolatile(object obj, long offset, float value)
+	{
+		Stats.Log("WriteFloatVolatile");
+		CheckArrayBounds(obj, offset, 2);
+		GCHandle handle = GCHandle.Alloc(obj, GCHandleType.Pinned);
+		Volatile.Write(ref ToRef2<float>((IntPtr)(handle.AddrOfPinnedObject().ToInt64() + offset)), value);
+		handle.Free();
+	}
+	[SecuritySafeCritical]
+	public static void WriteDouble(object obj, long offset, double value)
+	{
+		Stats.Log("WriteDouble");
+		CheckArrayBounds(obj, offset, 2);
+		GCHandle handle = GCHandle.Alloc(obj, GCHandleType.Pinned);
+		ToRef2<double>((IntPtr)(handle.AddrOfPinnedObject().ToInt64() + offset)) = value;
+		handle.Free();
+	}
+	[SecuritySafeCritical]
+	public static double ReadDouble(object obj, long offset)
+	{
+		Stats.Log("ReadDouble");
+		CheckArrayBounds(obj, offset, 2);
+		GCHandle handle = GCHandle.Alloc(obj, GCHandleType.Pinned);
+		double val = ToRef2<double>((IntPtr)(handle.AddrOfPinnedObject().ToInt64() + offset));
+		handle.Free();
+		return val;
+	}
+	[SecuritySafeCritical]
+	public static void WriteDoubleVolatile(object obj, long offset, double value)
+	{
+		Stats.Log("WriteDoubleVolatile");
+		CheckArrayBounds(obj, offset, 2);
+		GCHandle handle = GCHandle.Alloc(obj, GCHandleType.Pinned);
+		Volatile.Write(ref ToRef2<double>((IntPtr)(handle.AddrOfPinnedObject().ToInt64() + offset)), value);
+		handle.Free();
+	}
+	[SecuritySafeCritical]
+	public static double ReadDoubleVolatile(object obj, long offset)
+	{
+		Stats.Log("ReadDoubleVolatile");
+		CheckArrayBounds(obj, offset, 2);
+		GCHandle handle = GCHandle.Alloc(obj, GCHandleType.Pinned);
+		double val = Volatile.Read(ref ToRef2<double>((IntPtr)(handle.AddrOfPinnedObject().ToInt64() + offset)));
+		handle.Free();
+		return val;
+	}
+
+
+	public static void throwException(object thisUnsafe, System.Exception x)
 	{
 		throw x;
 	}
@@ -501,6 +646,7 @@ public static class Java_sun_misc_Unsafe
 
 	[DllImport("ikUnsafe.dll")]
 	private static extern int IKVM_CompareExchangeInt(IntPtr ptr, int expect, int update);
+
 	[DllImport("ikUnsafe.dll")]
 	private static extern long IKVM_CompareExchangeLong(IntPtr ptr, long expect, long update);
 	[DllImport("ikUnsafe.dll")]
@@ -517,6 +663,13 @@ public static class Java_sun_misc_Unsafe
 	public static extern void IKVM_SetLong(IntPtr ptr, long value);
 	[DllImport("ikUnsafe.dll")]
 	public static extern long IKVM_GetLong(IntPtr ptr);
+	[SecuritySafeCritical]
+	private static unsafe ref U RefFieldValue<U>(object obj, long offset)
+	{
+		IntPtr pobj = Unsafe.As<object, IntPtr>(ref obj);
+		pobj += IntPtr.Size + ((int)offset);
+		return ref Unsafe.AsRef<U>(pobj.ToPointer());
+	}
 
 	public static bool compareAndSwapInt(object thisUnsafe, object obj, long offset, int expect, int update)
 	{
@@ -525,11 +678,17 @@ public static class Java_sun_misc_Unsafe
 			Stats.Log("compareAndSwapInt.unaligned");
 			CheckArrayBounds(obj, offset, 4);
 			GCHandle handle = GCHandle.Alloc(obj, GCHandleType.Pinned);
-			return IKVM_CompareExchangeInt((IntPtr)(handle.AddrOfPinnedObject().ToInt64() + offset), expect, update) == expect;
+			int whatever = IKVM_CompareExchangeInt((IntPtr)(handle.AddrOfPinnedObject().ToInt64() + offset), expect, update);
+			handle.Free();
+			return whatever == expect;
 		} else
 		{
 			Stats.Log("compareAndSwapInt.", offset);
-			return ((CompareExchangeInt32)GetDelegate(offset))(obj, update, expect) == expect;
+			if(obj is null){
+				return ((CompareExchangeInt32)GetDelegate(offset))(obj, update, expect) == expect;
+			} else{
+				return Interlocked.CompareExchange(ref RefFieldValue<int>(obj, offset), update, expect) == expect;
+			}
 		}
 	}
 
@@ -540,13 +699,19 @@ public static class Java_sun_misc_Unsafe
 			Stats.Log("compareAndSwapLong.unaligned");
 			CheckArrayBounds(obj, offset, 8);
 			GCHandle handle = GCHandle.Alloc(obj, GCHandleType.Pinned);
-			return IKVM_CompareExchangeLong((IntPtr)(handle.AddrOfPinnedObject().ToInt64() + offset), expect, update) == expect;
+			long whatever = IKVM_CompareExchangeLong((IntPtr)(handle.AddrOfPinnedObject().ToInt64() + offset), expect, update);
+			handle.Free();
+			return whatever == expect;
 		}
 		else
 		{
 			Stats.Log("compareAndSwapLong.", offset);
-
-			return ((CompareExchangeInt64)GetDelegate(offset))(obj, update, expect) == expect;
+			if(obj is null){
+				return ((CompareExchangeInt64)GetDelegate(offset))(obj, update, expect) == expect;
+			} else{
+				return Interlocked.CompareExchange(ref RefFieldValue<long>(obj, offset), update, expect) == expect;
+			}
+			
 		}
 	}
 	public static int getAndAddInt(object thisUnsafe, object obj, long offset, int delta)
@@ -730,17 +895,33 @@ public static class Java_sun_misc_Unsafe
 		return fw.GetField();
 	}
 #endif
+	private static FieldInfo GetFieldInfo(Field field)
+	{
+#if FIRST_PASS
+		throw new NotImplementedException();
+#else
+		FieldWrapper fw = FieldWrapper.FromField(field);
+		fw.Link();
+		fw.ResolveField();
+		return fw.GetField();
+#endif
+	}
 
 	public static bool compareAndSwapObject(object thisUnsafe, object obj, long offset, object expect, object update)
 	{
 #if FIRST_PASS
 		return false;
 #else
-		object[] array = obj as object[];
-		if (ReferenceEquals(array, null))
+		if (obj is null)
 		{
 			Stats.Log("compareAndSwapObject.", offset);
 			return ((CompareExchangeObject)GetDelegate(offset))(obj, update, expect) == expect;
+		}
+		object[] array = obj as object[];
+		if (array is null)
+		{
+			Stats.Log("compareAndSwapObject.", offset);
+			return Interlocked.CompareExchange(ref RefFieldValue<object>(obj, offset), update, expect) == expect;
 		}
 		else
 		{
@@ -753,6 +934,1190 @@ public static class Java_sun_misc_Unsafe
 		}
 #endif
 	}
+	[SecuritySafeCritical]
+	public static long objectFieldOffset(object theUnsafe, Field field){
+		int offset = Marshal.ReadInt32(GetFieldInfo(field).FieldHandle.Value + (4 + IntPtr.Size)) & 0xFFFFFF;
+		return offset;
+	}
+
+	public static bool getBoolean(object theUnsafe, object obj, long offset){
+		if (obj is Array)
+        {
+			return ReadByte(obj, offset) != 0;
+		}
+
+		else
+		{
+			if(obj is null){
+#if FIRST_PASS
+				throw new NotImplementedException();
+#else
+				try
+				{
+					return sun.misc.Unsafe.getField(offset).getBoolean(obj);
+				}
+				catch (java.lang.IllegalAccessException x)
+				{
+					throw (java.lang.InternalError)new java.lang.InternalError().initCause(x);
+				}
+#endif
+			} else{
+				return RefFieldValue<bool>(obj, offset);
+			}
+		}
+		
+	}
+	public static bool getBooleanVolatile(object theUnsafe, object obj, long offset)
+	{
+		if (obj is Array)
+		{
+			return ReadByteVolatile(obj, offset) != 0;
+		}
+
+		else
+		{
+			if (obj is null)
+			{
+#if FIRST_PASS
+				throw new NotImplementedException();
+#else
+				try
+				{
+					Field field = sun.misc.Unsafe.getField(offset);
+					Interlocked.MemoryBarrier();
+					bool v = field.getBoolean(obj);
+					Interlocked.MemoryBarrier();
+					return v;
+				}
+				catch (java.lang.IllegalAccessException x)
+				{
+					throw (java.lang.InternalError)new java.lang.InternalError().initCause(x);
+				}
+#endif
+			}
+			else
+			{
+				return RefFieldValue<bool>(obj, offset);
+			}
+		}
+
+	}
+	public static void putBoolean(object theUnsafe, object obj, long offset, bool value)
+	{
+		if (obj is Array)
+		{
+			WriteByte(obj, offset, value ? (byte)1 : (byte)0);
+		}
+
+		else
+		{
+			if (obj is null)
+			{
+#if FIRST_PASS
+				throw new NotImplementedException();
+#else
+				try
+				{
+					sun.misc.Unsafe.getField(offset).setBoolean(obj, value);
+				}
+				catch (java.lang.IllegalAccessException x)
+				{
+					throw (java.lang.InternalError)new java.lang.InternalError().initCause(x);
+				}
+#endif
+			}
+			else
+			{
+				RefFieldValue<bool>(obj, offset) = value;
+			}
+		}
+	}
+	public static void putBooleanVolatile(object theUnsafe, object obj, long offset, bool value)
+	{
+		if (obj is Array)
+		{
+			WriteByteVolatile(obj, offset, value ? (byte)1 : (byte)0);
+		}
+
+		else
+		{
+			if (obj is null)
+			{
+#if FIRST_PASS
+				throw new NotImplementedException();
+#else
+				try
+				{
+					Field field = sun.misc.Unsafe.getField(offset);
+					Interlocked.MemoryBarrier();
+					field.setBoolean(obj, value);
+					Interlocked.MemoryBarrier();
+				}
+				catch (java.lang.IllegalAccessException x)
+				{
+					throw (java.lang.InternalError)new java.lang.InternalError().initCause(x);
+				}
+#endif
+			}
+			else
+			{
+				Volatile.Write(ref RefFieldValue<bool>(obj, offset), value);
+			}
+		}
+	}
+	public static byte getByte(object theUnsafe, object obj, long offset)
+	{
+		if (obj is Array)
+		{
+			return ReadByte(obj, offset);
+		}
+
+		else
+		{
+			if (obj is null)
+			{
+#if FIRST_PASS
+				throw new NotImplementedException();
+#else
+				try
+				{
+					return sun.misc.Unsafe.getField(offset).getByte(obj);
+				}
+				catch (java.lang.IllegalAccessException x)
+				{
+					throw (java.lang.InternalError)new java.lang.InternalError().initCause(x);
+				}
+#endif
+			}
+			else
+			{
+				return RefFieldValue<byte>(obj, offset);
+			}
+		}
+
+	}
+	public static byte getByteVolatile(object theUnsafe, object obj, long offset)
+	{
+		if (obj is Array)
+		{
+			return ReadByteVolatile(obj, offset);
+		}
+
+		else
+		{
+			if (obj is null)
+			{
+#if FIRST_PASS
+				throw new NotImplementedException();
+#else
+				try
+				{
+					Field field = sun.misc.Unsafe.getField(offset);
+					Interlocked.MemoryBarrier();
+					byte v = field.getByte(obj);
+					Interlocked.MemoryBarrier();
+					return v;
+				}
+				catch (java.lang.IllegalAccessException x)
+				{
+					throw (java.lang.InternalError)new java.lang.InternalError().initCause(x);
+				}
+#endif
+			}
+			else
+			{
+				return RefFieldValue<byte>(obj, offset);
+			}
+		}
+
+	}
+	public static void putByte(object theUnsafe, object obj, long offset, byte value)
+	{
+		if (obj is Array)
+		{
+			WriteByte(obj, offset, value);
+		}
+
+		else
+		{
+			if (obj is null)
+			{
+#if FIRST_PASS
+				throw new NotImplementedException();
+#else
+				try
+				{
+					sun.misc.Unsafe.getField(offset).setByte(obj, value);
+				}
+				catch (java.lang.IllegalAccessException x)
+				{
+					throw (java.lang.InternalError)new java.lang.InternalError().initCause(x);
+				}
+#endif
+			}
+			else
+			{
+				RefFieldValue<byte>(obj, offset) = value;
+			}
+		}
+	}
+	public static void putByteVolatile(object theUnsafe, object obj, long offset, byte value)
+	{
+		if (obj is Array)
+		{
+			WriteByteVolatile(obj, offset, value);
+		}
+
+		else
+		{
+			if (obj is null)
+			{
+#if FIRST_PASS
+				throw new NotImplementedException();
+#else
+				try
+				{
+					Field field = sun.misc.Unsafe.getField(offset);
+					Interlocked.MemoryBarrier();
+					field.setByte(obj, value);
+					Interlocked.MemoryBarrier();
+				}
+				catch (java.lang.IllegalAccessException x)
+				{
+					throw (java.lang.InternalError)new java.lang.InternalError().initCause(x);
+				}
+#endif
+			}
+			else
+			{
+				Volatile.Write(ref RefFieldValue<byte>(obj, offset), value);
+			}
+		}
+	}
+	public static short getShort(object theUnsafe, object obj, long offset)
+	{
+		if (obj is Array)
+		{
+			return ReadInt16(obj, offset);
+		}
+
+		else
+		{
+			if (obj is null)
+			{
+#if FIRST_PASS
+				throw new NotImplementedException();
+#else
+				try
+				{
+					return sun.misc.Unsafe.getField(offset).getShort(obj);
+				}
+				catch (java.lang.IllegalAccessException x)
+				{
+					throw (java.lang.InternalError)new java.lang.InternalError().initCause(x);
+				}
+#endif
+			}
+			else
+			{
+				return RefFieldValue<short>(obj, offset);
+			}
+		}
+
+	}
+	public static short getShortVolatile(object theUnsafe, object obj, long offset)
+	{
+		if (obj is Array)
+		{
+			return ReadShortVolatile(obj, offset);
+		}
+
+		else
+		{
+			if (obj is null)
+			{
+#if FIRST_PASS
+				throw new NotImplementedException();
+#else
+				try
+				{
+					Field field = sun.misc.Unsafe.getField(offset);
+					Interlocked.MemoryBarrier();
+					short v = field.getShort(obj);
+					Interlocked.MemoryBarrier();
+					return v;
+				}
+				catch (java.lang.IllegalAccessException x)
+				{
+					throw (java.lang.InternalError)new java.lang.InternalError().initCause(x);
+				}
+#endif
+			}
+			else
+			{
+				return RefFieldValue<short>(obj, offset);
+			}
+		}
+
+	}
+	public static void putShort(object theUnsafe, object obj, long offset, short value)
+	{
+		if (obj is Array)
+		{
+			WriteInt16(obj, offset, value);
+		}
+
+		else
+		{
+			if (obj is null)
+			{
+#if FIRST_PASS
+				throw new NotImplementedException();
+#else
+				try
+				{
+					sun.misc.Unsafe.getField(offset).setShort(obj, value);
+				}
+				catch (java.lang.IllegalAccessException x)
+				{
+					throw (java.lang.InternalError)new java.lang.InternalError().initCause(x);
+				}
+#endif
+			}
+			else
+			{
+				RefFieldValue<short>(obj, offset) = value;
+			}
+		}
+	}
+	public static void putShortVolatile(object theUnsafe, object obj, long offset, short value)
+	{
+		if (obj is Array)
+		{
+			WriteShortVolatile(obj, offset, value);
+		}
+
+		else
+		{
+			if (obj is null)
+			{
+#if FIRST_PASS
+				throw new NotImplementedException();
+#else
+				try
+				{
+					Field field = sun.misc.Unsafe.getField(offset);
+					Interlocked.MemoryBarrier();
+					field.setShort(obj, value);
+					Interlocked.MemoryBarrier();
+				}
+				catch (java.lang.IllegalAccessException x)
+				{
+					throw (java.lang.InternalError)new java.lang.InternalError().initCause(x);
+				}
+#endif
+			}
+			else
+			{
+				Volatile.Write(ref RefFieldValue<short>(obj, offset), value);
+			}
+		}
+	}
+	public static int getInt(object theUnsafe, object obj, long offset)
+	{
+		if (obj is Array)
+		{
+			return ReadInt32(obj, offset);
+		}
+
+		else
+		{
+			if (obj is null)
+			{
+#if FIRST_PASS
+				throw new NotImplementedException();
+#else
+				try
+				{
+					return sun.misc.Unsafe.getField(offset).getInt(obj);
+				}
+				catch (java.lang.IllegalAccessException x)
+				{
+					throw (java.lang.InternalError)new java.lang.InternalError().initCause(x);
+				}
+#endif
+			}
+			else
+			{
+				return RefFieldValue<int>(obj, offset);
+			}
+		}
+
+	}
+	public static int getIntVolatile(object theUnsafe, object obj, long offset)
+	{
+		if (obj is Array)
+		{
+			return ReadIntVolatile(obj, offset);
+		}
+
+		else
+		{
+			if (obj is null)
+			{
+#if FIRST_PASS
+				throw new NotImplementedException();
+#else
+				try
+				{
+					Field field = sun.misc.Unsafe.getField(offset);
+					Interlocked.MemoryBarrier();
+					int v = field.getInt(obj);
+					Interlocked.MemoryBarrier();
+					return v;
+				}
+				catch (java.lang.IllegalAccessException x)
+				{
+					throw (java.lang.InternalError)new java.lang.InternalError().initCause(x);
+				}
+#endif
+			}
+			else
+			{
+				return RefFieldValue<int>(obj, offset);
+			}
+		}
+
+	}
+	public static void putInt(object theUnsafe, object obj, long offset, int value)
+	{
+		if (obj is Array)
+		{
+			WriteInt32(obj, offset, value);
+		}
+
+		else
+		{
+			if (obj is null)
+			{
+#if FIRST_PASS
+				throw new NotImplementedException();
+#else
+				try
+				{
+					sun.misc.Unsafe.getField(offset).setInt(obj, value);
+				}
+				catch (java.lang.IllegalAccessException x)
+				{
+					throw (java.lang.InternalError)new java.lang.InternalError().initCause(x);
+				}
+#endif
+			}
+			else
+			{
+				RefFieldValue<int>(obj, offset) = value;
+			}
+		}
+	}
+	public static void putIntVolatile(object theUnsafe, object obj, long offset, int value)
+	{
+		if (obj is Array)
+		{
+			WriteIntVolatile(obj, offset, value);
+		}
+
+		else
+		{
+			if (obj is null)
+			{
+#if FIRST_PASS
+				throw new NotImplementedException();
+#else
+				try
+				{
+					Field field = sun.misc.Unsafe.getField(offset);
+					Interlocked.MemoryBarrier();
+					field.setInt(obj, value);
+					Interlocked.MemoryBarrier();
+				}
+				catch (java.lang.IllegalAccessException x)
+				{
+					throw (java.lang.InternalError)new java.lang.InternalError().initCause(x);
+				}
+#endif
+			}
+			else
+			{
+				Volatile.Write(ref RefFieldValue<int>(obj, offset), value);
+			}
+		}
+	}
+	public static char getChar(object theUnsafe, object obj, long offset)
+	{
+		if (obj is Array)
+		{
+			return (char)ReadInt16(obj, offset);
+		}
+
+		else
+		{
+			if (obj is null)
+			{
+#if FIRST_PASS
+				throw new NotImplementedException();
+#else
+				try
+				{
+					return sun.misc.Unsafe.getField(offset).getChar(obj);
+				}
+				catch (java.lang.IllegalAccessException x)
+				{
+					throw (java.lang.InternalError)new java.lang.InternalError().initCause(x);
+				}
+#endif
+			}
+			else
+			{
+				return RefFieldValue<char>(obj, offset);
+			}
+		}
+
+	}
+	public static char getCharVolatile(object theUnsafe, object obj, long offset)
+	{
+		if (obj is Array)
+		{
+			return (char)ReadShortVolatile(obj, offset);
+		}
+
+		else
+		{
+			if (obj is null)
+			{
+#if FIRST_PASS
+				throw new NotImplementedException();
+#else
+				try
+				{
+					Field field = sun.misc.Unsafe.getField(offset);
+					Interlocked.MemoryBarrier();
+					char v = field.getChar(obj);
+					Interlocked.MemoryBarrier();
+					return v;
+				}
+				catch (java.lang.IllegalAccessException x)
+				{
+					throw (java.lang.InternalError)new java.lang.InternalError().initCause(x);
+				}
+#endif
+			}
+			else
+			{
+				return RefFieldValue<char>(obj, offset);
+			}
+		}
+
+	}
+	public static void putChar(object theUnsafe, object obj, long offset, char value)
+	{
+		if (obj is Array)
+		{
+			WriteInt16(obj, offset, (short)value);
+		}
+
+		else
+		{
+			if (obj is null)
+			{
+#if FIRST_PASS
+				throw new NotImplementedException();
+#else
+				try
+				{
+					sun.misc.Unsafe.getField(offset).setChar(obj, value);
+				}
+				catch (java.lang.IllegalAccessException x)
+				{
+					throw (java.lang.InternalError)new java.lang.InternalError().initCause(x);
+				}
+#endif
+			}
+			else
+			{
+				RefFieldValue<char>(obj, offset) = value;
+			}
+		}
+	}
+	public static void putCharVolatile(object theUnsafe, object obj, long offset, char value)
+	{
+		if (obj is Array)
+		{
+			WriteShortVolatile(obj, offset, (short)value);
+		}
+
+		else
+		{
+			if (obj is null)
+			{
+#if FIRST_PASS
+				throw new NotImplementedException();
+#else
+				try
+				{
+					Field field = sun.misc.Unsafe.getField(offset);
+					Interlocked.MemoryBarrier();
+					field.setChar(obj, value);
+					Interlocked.MemoryBarrier();
+				}
+				catch (java.lang.IllegalAccessException x)
+				{
+					throw (java.lang.InternalError)new java.lang.InternalError().initCause(x);
+				}
+#endif
+			}
+			else
+			{
+				Volatile.Write(ref RefFieldValue<short>(obj, offset), (short)value);
+			}
+		}
+	}
+	public static float getFloat(object theUnsafe, object obj, long offset)
+	{
+		if (obj is Array)
+		{
+			return ReadFloat2(obj, offset);
+		}
+
+		else
+		{
+			if (obj is null)
+			{
+#if FIRST_PASS
+				throw new NotImplementedException();
+#else
+				try
+				{
+					return sun.misc.Unsafe.getField(offset).getFloat(obj);
+				}
+				catch (java.lang.IllegalAccessException x)
+				{
+					throw (java.lang.InternalError)new java.lang.InternalError().initCause(x);
+				}
+#endif
+			}
+			else
+			{
+				return RefFieldValue<float>(obj, offset);
+			}
+		}
+
+	}
+	public static float getFloatVolatile(object theUnsafe, object obj, long offset)
+	{
+		if (obj is Array)
+		{
+			return ReadFloatVolatile(obj, offset);
+		}
+
+		else
+		{
+			if (obj is null)
+			{
+#if FIRST_PASS
+				throw new NotImplementedException();
+#else
+				try
+				{
+					Field field = sun.misc.Unsafe.getField(offset);
+					Interlocked.MemoryBarrier();
+					float v = field.getFloat(obj);
+					Interlocked.MemoryBarrier();
+					return v;
+				}
+				catch (java.lang.IllegalAccessException x)
+				{
+					throw (java.lang.InternalError)new java.lang.InternalError().initCause(x);
+				}
+#endif
+			}
+			else
+			{
+				return RefFieldValue<float>(obj, offset);
+			}
+		}
+
+	}
+	public static void putFloat(object theUnsafe, object obj, long offset, float value)
+	{
+		if (obj is Array)
+		{
+			WriteFloat2(obj, offset, value);
+		}
+
+		else
+		{
+			if (obj is null)
+			{
+#if FIRST_PASS
+				throw new NotImplementedException();
+#else
+				try
+				{
+					sun.misc.Unsafe.getField(offset).setFloat(obj, value);
+				}
+				catch (java.lang.IllegalAccessException x)
+				{
+					throw (java.lang.InternalError)new java.lang.InternalError().initCause(x);
+				}
+#endif
+			}
+			else
+			{
+				RefFieldValue<float>(obj, offset) = value;
+			}
+		}
+	}
+	public static void putFloatVolatile(object theUnsafe, object obj, long offset, float value)
+	{
+		if (obj is Array)
+		{
+			WriteFloatVolatile(obj, offset, value);
+		}
+
+		else
+		{
+			if (obj is null)
+			{
+#if FIRST_PASS
+				throw new NotImplementedException();
+#else
+				try
+				{
+					Field field = sun.misc.Unsafe.getField(offset);
+					Interlocked.MemoryBarrier();
+					field.setFloat(obj, value);
+					Interlocked.MemoryBarrier();
+				}
+				catch (java.lang.IllegalAccessException x)
+				{
+					throw (java.lang.InternalError)new java.lang.InternalError().initCause(x);
+				}
+#endif
+			}
+			else
+			{
+				Volatile.Write(ref RefFieldValue<float>(obj, offset), value);
+			}
+		}
+	}
+	public static long getLong(object theUnsafe, object obj, long offset)
+	{
+		if (obj is Array)
+		{
+			return ReadInt64(obj, offset, true);
+		}
+
+		else
+		{
+			if (obj is null)
+			{
+#if FIRST_PASS
+				throw new NotImplementedException();
+#else
+				try
+				{
+					return sun.misc.Unsafe.getField(offset).getLong(obj);
+				}
+				catch (java.lang.IllegalAccessException x)
+				{
+					throw (java.lang.InternalError)new java.lang.InternalError().initCause(x);
+				}
+#endif
+			}
+			else
+			{
+				return RefFieldValue<long>(obj, offset);
+			}
+		}
+
+	}
+	public static long getLongVolatile(object theUnsafe, object obj, long offset)
+	{
+		if (obj is Array)
+		{
+			return ReadInt64(obj, offset, true);
+		}
+
+		else
+		{
+			if (obj is null)
+			{
+#if FIRST_PASS
+				throw new NotImplementedException();
+#else
+				try
+				{
+					Field field = sun.misc.Unsafe.getField(offset);
+					Interlocked.MemoryBarrier();
+					long v = field.getLong(obj);
+					Interlocked.MemoryBarrier();
+					return v;
+				}
+				catch (java.lang.IllegalAccessException x)
+				{
+					throw (java.lang.InternalError)new java.lang.InternalError().initCause(x);
+				}
+#endif
+			}
+			else
+			{
+				return RefFieldValue<long>(obj, offset);
+			}
+		}
+
+	}
+	public static void putLong(object theUnsafe, object obj, long offset, long value)
+	{
+		if (obj is Array)
+		{
+			WriteInt64(obj, offset, value, true);
+		}
+
+		else
+		{
+			if (obj is null)
+			{
+#if FIRST_PASS
+				throw new NotImplementedException();
+#else
+				try
+				{
+					sun.misc.Unsafe.getField(offset).setLong(obj, value);
+				}
+				catch (java.lang.IllegalAccessException x)
+				{
+					throw (java.lang.InternalError)new java.lang.InternalError().initCause(x);
+				}
+#endif
+			}
+			else
+			{
+				RefFieldValue<long>(obj, offset) = value;
+			}
+		}
+	}
+	public static void putLongVolatile(object theUnsafe, object obj, long offset, long value)
+	{
+		if (obj is Array)
+		{
+			WriteInt64(obj, offset, value, true);
+		}
+
+		else
+		{
+			if (obj is null)
+			{
+#if FIRST_PASS
+				throw new NotImplementedException();
+#else
+				try
+				{
+					Field field = sun.misc.Unsafe.getField(offset);
+					Interlocked.MemoryBarrier();
+					field.setLong(obj, value);
+					Interlocked.MemoryBarrier();
+				}
+				catch (java.lang.IllegalAccessException x)
+				{
+					throw (java.lang.InternalError)new java.lang.InternalError().initCause(x);
+				}
+#endif
+			}
+			else
+			{
+				Volatile.Write(ref RefFieldValue<long>(obj, offset), value);
+			}
+		}
+	}
+	public static double getDouble(object theUnsafe, object obj, long offset)
+	{
+		if (obj is Array)
+		{
+			return ReadDouble(obj, offset);
+		}
+
+		else
+		{
+			if (obj is null)
+			{
+#if FIRST_PASS
+				throw new NotImplementedException();
+#else
+				try
+				{
+					return sun.misc.Unsafe.getField(offset).getDouble(obj);
+				}
+				catch (java.lang.IllegalAccessException x)
+				{
+					throw (java.lang.InternalError)new java.lang.InternalError().initCause(x);
+				}
+#endif
+			}
+			else
+			{
+				return RefFieldValue<double>(obj, offset);
+			}
+		}
+
+	}
+	public static double getDoubleVolatile(object theUnsafe, object obj, long offset)
+	{
+		if (obj is Array)
+		{
+			return ReadDoubleVolatile(obj, offset);
+		}
+
+		else
+		{
+			if (obj is null)
+			{
+#if FIRST_PASS
+				throw new NotImplementedException();
+#else
+				try
+				{
+					Field field = sun.misc.Unsafe.getField(offset);
+					Interlocked.MemoryBarrier();
+					double v = field.getDouble(obj);
+					Interlocked.MemoryBarrier();
+					return v;
+				}
+				catch (java.lang.IllegalAccessException x)
+				{
+					throw (java.lang.InternalError)new java.lang.InternalError().initCause(x);
+				}
+#endif
+			}
+			else
+			{
+				return RefFieldValue<double>(obj, offset);
+			}
+		}
+
+	}
+	public static void putDouble(object theUnsafe, object obj, long offset, double value)
+	{
+		if (obj is Array)
+		{
+			WriteDouble(obj, offset, value);
+		}
+
+		else
+		{
+			if (obj is null)
+			{
+#if FIRST_PASS
+				throw new NotImplementedException();
+#else
+				try
+				{
+					sun.misc.Unsafe.getField(offset).setDouble(obj, value);
+				}
+				catch (java.lang.IllegalAccessException x)
+				{
+					throw (java.lang.InternalError)new java.lang.InternalError().initCause(x);
+				}
+#endif
+			}
+			else
+			{
+				RefFieldValue<double>(obj, offset) = value;
+			}
+		}
+	}
+	public static void putDoubleVolatile(object theUnsafe, object obj, long offset, double value)
+	{
+		if (obj is Array)
+		{
+			WriteDoubleVolatile(obj, offset, value);
+		}
+
+		else
+		{
+			if (obj is null)
+			{
+#if FIRST_PASS
+				throw new NotImplementedException();
+#else
+				try
+				{
+					Field field = sun.misc.Unsafe.getField(offset);
+					Interlocked.MemoryBarrier();
+					field.setDouble(obj, value);
+					Interlocked.MemoryBarrier();
+				}
+				catch (java.lang.IllegalAccessException x)
+				{
+					throw (java.lang.InternalError)new java.lang.InternalError().initCause(x);
+				}
+#endif
+			}
+			else
+			{
+				Volatile.Write(ref RefFieldValue<double>(obj, offset), value);
+			}
+		}
+	}
+	public static object getObject(object theUnsafe, object obj, long offset)
+	{
+		if (obj is null)
+		{
+#if FIRST_PASS
+				throw new NotImplementedException();
+#else
+			try
+			{
+				return sun.misc.Unsafe.getField(offset).get(obj);
+			}
+			catch (java.lang.IllegalAccessException x)
+			{
+				throw (java.lang.InternalError)new java.lang.InternalError().initCause(x);
+			}
+#endif
+		}
+		object[] array = obj as object[];
+		if (array is null)
+		{
+			return RefFieldValue<object>(obj, offset);
+		}
+		else
+		{
+			if (offset % 4 == 0)
+			{
+				return array[offset / 4];
+			}
+			else
+			{
+				throw new NotImplementedException("IKVM.NET doesn't support unaligned object arrays");
+			}
+
+		}
+	}
+	public static object getObjectVolatile(object theUnsafe, object obj, long offset)
+	{
+		if (obj is null)
+		{
+#if FIRST_PASS
+				throw new NotImplementedException();
+#else
+			try
+			{
+				Field field = sun.misc.Unsafe.getField(offset);
+				Interlocked.MemoryBarrier();
+				object obj2 = field.get(obj);
+				Interlocked.MemoryBarrier();
+				return obj2;
+			}
+			catch (java.lang.IllegalAccessException x)
+			{
+				throw (java.lang.InternalError)new java.lang.InternalError().initCause(x);
+			}
+#endif
+		}
+		object[] array = obj as object[];
+		if (array is null)
+		{
+			return RefFieldValue<object>(obj, offset);
+		}
+		else
+		{
+			if (offset % 4 == 0)
+			{
+				return array[offset / 4];
+			}
+			else
+			{
+				throw new NotImplementedException("IKVM.NET doesn't support unaligned object arrays");
+			}
+
+		}
+	}
+	public static void putObject(object theUnsafe, object obj, long offset, object value)
+	{
+		if (obj is null)
+		{
+#if FIRST_PASS
+				throw new NotImplementedException();
+#else
+			try
+			{
+				sun.misc.Unsafe.getField(offset).set(obj, value);
+			}
+			catch (java.lang.IllegalAccessException x)
+			{
+				throw (java.lang.InternalError)new java.lang.InternalError().initCause(x);
+			}
+#endif
+		}
+		object[] array = obj as object[];
+		if (array is null)
+		{
+			RefFieldValue<object>(obj, offset) = value;
+		}
+		else
+		{
+			if (offset % 4 == 0)
+			{
+				array[offset / 4] = value;
+			}
+			else
+			{
+				throw new NotImplementedException("IKVM.NET doesn't support unaligned object arrays");
+			}
+
+		}
+	}
+	public static void putObjectVolatile(object theUnsafe, object obj, long offset, object value)
+	{
+		if (obj is null)
+		{
+#if FIRST_PASS
+				throw new NotImplementedException();
+#else
+			try
+			{
+				Field field = sun.misc.Unsafe.getField(offset);
+				Interlocked.MemoryBarrier();
+				field.set(obj, value);
+				Interlocked.MemoryBarrier();
+			}
+			catch (java.lang.IllegalAccessException x)
+			{
+				throw (java.lang.InternalError)new java.lang.InternalError().initCause(x);
+			}
+#endif
+		}
+		object[] array = obj as object[];
+		if (array is null)
+		{
+			Volatile.Write(ref RefFieldValue<object>(obj, offset), value);
+		}
+		else
+		{
+			if (offset % 4 == 0)
+			{
+				Volatile.Write(ref array[offset / 4], value);
+			}
+			else
+			{
+				throw new NotImplementedException("IKVM.NET doesn't support unaligned object arrays");
+			}
+
+		}
+	}
+
+
+
 
 	private sealed class SwapWrapper{
 		private readonly long offset;
