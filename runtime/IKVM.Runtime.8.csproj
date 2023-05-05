@@ -113,6 +113,7 @@
     </Reference>
     <Reference Include="System.configuration" />
     <Reference Include="System.Management" />
+	<Reference Include="System.Runtime.CompilerServices.Unsafe" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\CommonAssemblyInfo.cs">
