@@ -1,5 +1,6 @@
 build_script:
  - appveyor-prebuild.bat
+ - nuget restore ikvm9.sln
  - build.bat
  - 7z a -mm=Deflate -mmt=on -mx=9 ikvm-test-build.zip .\bin\*
 test_script:
