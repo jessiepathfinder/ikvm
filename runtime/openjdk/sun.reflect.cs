@@ -2156,7 +2156,92 @@ public static class Java_sun_reflect_ReflectionFactory
 		int modifiers = field.getModifiers();
 		bool isStatic = java.lang.reflect.Modifier.isStatic(modifiers);
 		bool isFinal = java.lang.reflect.Modifier.isFinal(modifiers);
-		return FieldAccessorImplBase.Create(FieldWrapper.FromField(field), isFinal && (!overrideAccessCheck || isStatic));
+		bool isReadOnly = isFinal & !overrideAccessCheck;
+		if (isStatic){
+			return FieldAccessorImplBase.Create(FieldWrapper.FromField(field), isReadOnly);
+		} else{
+			java.lang.Class type = field.getType();
+			if (isFinal || java.lang.reflect.Modifier.isVolatile(modifiers))
+			{
+				
+				if (type == java.lang.Boolean.TYPE)
+				{
+					return new sun.reflect.UnsafeQualifiedBooleanFieldAccessorImpl(field, isReadOnly);
+				}
+				else if (type == java.lang.Byte.TYPE)
+				{
+					return new sun.reflect.UnsafeQualifiedByteFieldAccessorImpl(field, isReadOnly);
+				}
+				else if (type == java.lang.Short.TYPE)
+				{
+					return new sun.reflect.UnsafeQualifiedShortFieldAccessorImpl(field, isReadOnly);
+				}
+				else if (type == java.lang.Character.TYPE)
+				{
+					return new sun.reflect.UnsafeQualifiedCharacterFieldAccessorImpl(field, isReadOnly);
+				}
+				else if (type == java.lang.Integer.TYPE)
+				{
+					return new sun.reflect.UnsafeQualifiedIntegerFieldAccessorImpl(field, isReadOnly);
+				}
+				else if (type == java.lang.Long.TYPE)
+				{
+					return new sun.reflect.UnsafeQualifiedLongFieldAccessorImpl(field, isReadOnly);
+				}
+				else if (type == java.lang.Float.TYPE)
+				{
+					return new sun.reflect.UnsafeQualifiedFloatFieldAccessorImpl(field, isReadOnly);
+				}
+				else if (type == java.lang.Double.TYPE)
+				{
+					return new sun.reflect.UnsafeQualifiedDoubleFieldAccessorImpl(field, isReadOnly);
+				}
+				else
+				{
+					return new sun.reflect.UnsafeQualifiedObjectFieldAccessorImpl(field, isReadOnly);
+				}
+			}
+			else
+			{
+				if (type == java.lang.Boolean.TYPE)
+				{
+					return new sun.reflect.UnsafeBooleanFieldAccessorImpl(field);
+				}
+				else if (type == java.lang.Byte.TYPE)
+				{
+					return new sun.reflect.UnsafeByteFieldAccessorImpl(field);
+				}
+				else if (type == java.lang.Short.TYPE)
+				{
+					return new sun.reflect.UnsafeShortFieldAccessorImpl(field);
+				}
+				else if (type == java.lang.Character.TYPE)
+				{
+					return new sun.reflect.UnsafeCharacterFieldAccessorImpl(field);
+				}
+				else if (type == java.lang.Integer.TYPE)
+				{
+					return new sun.reflect.UnsafeIntegerFieldAccessorImpl(field);
+				}
+				else if (type == java.lang.Long.TYPE)
+				{
+					return new sun.reflect.UnsafeLongFieldAccessorImpl(field);
+				}
+				else if (type == java.lang.Float.TYPE)
+				{
+					return new sun.reflect.UnsafeFloatFieldAccessorImpl(field);
+				}
+				else if (type == java.lang.Double.TYPE)
+				{
+					return new sun.reflect.UnsafeDoubleFieldAccessorImpl(field);
+				}
+				else
+				{
+					return new sun.reflect.UnsafeObjectFieldAccessorImpl(field);
+				}
+			}
+		}
+			
 #endif
 	}
 
