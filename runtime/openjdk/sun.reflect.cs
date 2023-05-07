@@ -2156,10 +2156,11 @@ public static class Java_sun_reflect_ReflectionFactory
 		int modifiers = field.getModifiers();
 		bool isStatic = java.lang.reflect.Modifier.isStatic(modifiers);
 		bool isFinal = java.lang.reflect.Modifier.isFinal(modifiers);
-		bool isReadOnly = isFinal & !overrideAccessCheck;
+		
 		if (isStatic){
-			return FieldAccessorImplBase.Create(FieldWrapper.FromField(field), isReadOnly);
+			return FieldAccessorImplBase.Create(FieldWrapper.FromField(field), isFinal);
 		} else{
+			bool isReadOnly = isFinal & !overrideAccessCheck;
 			java.lang.Class type = field.getType();
 			if (isFinal || java.lang.reflect.Modifier.isVolatile(modifiers))
 			{
