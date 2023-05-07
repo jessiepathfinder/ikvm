@@ -2160,46 +2160,45 @@ public static class Java_sun_reflect_ReflectionFactory
 		if (isStatic){
 			return FieldAccessorImplBase.Create(FieldWrapper.FromField(field), isFinal);
 		} else{
-			bool isReadOnly = isFinal & !overrideAccessCheck;
 			java.lang.Class type = field.getType();
 			if (isFinal || java.lang.reflect.Modifier.isVolatile(modifiers))
 			{
 				
 				if (type == java.lang.Boolean.TYPE)
 				{
-					return new sun.reflect.UnsafeQualifiedBooleanFieldAccessorImpl(field, isReadOnly);
+					return new sun.reflect.UnsafeQualifiedBooleanFieldAccessorImpl(field, isFinal);
 				}
 				else if (type == java.lang.Byte.TYPE)
 				{
-					return new sun.reflect.UnsafeQualifiedByteFieldAccessorImpl(field, isReadOnly);
+					return new sun.reflect.UnsafeQualifiedByteFieldAccessorImpl(field, isFinal);
 				}
 				else if (type == java.lang.Short.TYPE)
 				{
-					return new sun.reflect.UnsafeQualifiedShortFieldAccessorImpl(field, isReadOnly);
+					return new sun.reflect.UnsafeQualifiedShortFieldAccessorImpl(field, isFinal);
 				}
 				else if (type == java.lang.Character.TYPE)
 				{
-					return new sun.reflect.UnsafeQualifiedCharacterFieldAccessorImpl(field, isReadOnly);
+					return new sun.reflect.UnsafeQualifiedCharacterFieldAccessorImpl(field, isFinal);
 				}
 				else if (type == java.lang.Integer.TYPE)
 				{
-					return new sun.reflect.UnsafeQualifiedIntegerFieldAccessorImpl(field, isReadOnly);
+					return new sun.reflect.UnsafeQualifiedIntegerFieldAccessorImpl(field, isFinal);
 				}
 				else if (type == java.lang.Long.TYPE)
 				{
-					return new sun.reflect.UnsafeQualifiedLongFieldAccessorImpl(field, isReadOnly);
+					return new sun.reflect.UnsafeQualifiedLongFieldAccessorImpl(field, isFinal);
 				}
 				else if (type == java.lang.Float.TYPE)
 				{
-					return new sun.reflect.UnsafeQualifiedFloatFieldAccessorImpl(field, isReadOnly);
+					return new sun.reflect.UnsafeQualifiedFloatFieldAccessorImpl(field, isFinal);
 				}
 				else if (type == java.lang.Double.TYPE)
 				{
-					return new sun.reflect.UnsafeQualifiedDoubleFieldAccessorImpl(field, isReadOnly);
+					return new sun.reflect.UnsafeQualifiedDoubleFieldAccessorImpl(field, isFinal);
 				}
 				else
 				{
-					return new sun.reflect.UnsafeQualifiedObjectFieldAccessorImpl(field, isReadOnly);
+					return new sun.reflect.UnsafeQualifiedObjectFieldAccessorImpl(field, isFinal);
 				}
 			}
 			else
