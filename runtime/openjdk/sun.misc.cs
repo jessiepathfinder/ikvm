@@ -685,7 +685,7 @@ public static class Java_sun_misc_Unsafe
 		{
 			Stats.Log("compareAndSwapInt.", offset);
 			if(obj is null){
-				return ((CompareExchangeInt32)GetDelegate(offset))(obj, update, expect) == expect;
+				return ((CompareExchangeInt32)GetDelegate(offset))(update, expect) == expect;
 			} else{
 				return Interlocked.CompareExchange(ref RefFieldValue<int>(obj, offset), update, expect) == expect;
 			}
@@ -707,7 +707,7 @@ public static class Java_sun_misc_Unsafe
 		{
 			Stats.Log("compareAndSwapLong.", offset);
 			if(obj is null){
-				return ((CompareExchangeInt64)GetDelegate(offset))(obj, update, expect) == expect;
+				return ((CompareExchangeInt64)GetDelegate(offset))(update, expect) == expect;
 			} else{
 				return Interlocked.CompareExchange(ref RefFieldValue<long>(obj, offset), update, expect) == expect;
 			}
@@ -723,13 +723,20 @@ public static class Java_sun_misc_Unsafe
 			GCHandle handle = GCHandle.Alloc(obj, GCHandleType.Pinned);
 			return IKVM_AddInt((IntPtr)(handle.AddrOfPinnedObject().ToInt64() + offset), delta);
 		} else {
-			while (true) {
-#if !FIRST_PASS
-				int i = ((sun.misc.Unsafe)thisUnsafe).getIntVolatile(obj, offset);
-				if (compareAndSwapInt(null, obj, offset, i, i + delta)) {
-					return i;
+			if(obj is null){
+				int i = getIntVolatile(null, null, offset);
+				CompareExchangeInt32 cmpxchg = ((CompareExchangeInt32)GetDelegate(offset));
+				while (true)
+				{
+					int z = cmpxchg(i + delta, i);
+					if (z == i)
+					{
+						return i;
+					}
+					i = z;
 				}
-#endif
+			} else{
+				return Interlocked.Add(ref RefFieldValue<int>(obj, offset), delta) - delta;
 			}
 		}
 	}
@@ -742,13 +749,23 @@ public static class Java_sun_misc_Unsafe
 			GCHandle handle = GCHandle.Alloc(obj, GCHandleType.Pinned);
 			return IKVM_AddLong((IntPtr)(handle.AddrOfPinnedObject().ToInt64() + offset), delta);
 		} else {
-			while (true) {
-#if !FIRST_PASS
-				long i = ((sun.misc.Unsafe)thisUnsafe).getLongVolatile(obj, offset);
-				if (compareAndSwapLong(null, obj, offset, i, i + delta)) {
-					return i;
+			if (obj is null)
+			{
+				long i = getLongVolatile(null, null, offset);
+				CompareExchangeInt64 cmpxchg = ((CompareExchangeInt64)GetDelegate(offset));
+				while (true)
+				{
+					long z = cmpxchg(i + delta, i);
+					if (z == i)
+					{
+						return i;
+					}
+					i = z;
 				}
-#endif
+			}
+			else
+			{
+				return Interlocked.Add(ref RefFieldValue<long>(obj, offset), delta) - delta;
 			}
 		}
 	}
@@ -762,32 +779,46 @@ public static class Java_sun_misc_Unsafe
 			return IKVM_ExchangeInt((IntPtr)(handle.AddrOfPinnedObject().ToInt64() + offset), delta);
 		}
 		else {
-			while (true) {
-#if !FIRST_PASS
-				int i = ((sun.misc.Unsafe)thisUnsafe).getIntVolatile(obj, offset);
-				if (compareAndSwapInt(null, obj, offset, i, delta)) {
-					return i;
+			
+			if (obj is null)
+			{
+				int i = getIntVolatile(null, null, offset);
+				CompareExchangeInt32 cmpxchg = ((CompareExchangeInt32)GetDelegate(offset));
+				while (true)
+				{
+					int z = cmpxchg(delta, i);
+					if(i == z){
+						return i;
+					}
+					i = z;
 				}
-#endif
+			}
+			else
+			{
+				return Interlocked.Exchange(ref RefFieldValue<int>(obj, offset), delta);
 			}
 		}
 	}
 
 	public static object getAndSetObject(object thisUnsafe, object o, long offset, object newValue){
-		object[] array = o as object[];
-		if(ReferenceEquals(array, null)){
+		if (o is null)
+		{
+			object val = getObjectVolatile(null, null, offset);
 			CompareExchangeObject tmp = (CompareExchangeObject)GetDelegate(offset);
-			while(true){
-#if FIRST_PASS
-				Object val = null;
-#else
-				Object val = ((sun.misc.Unsafe)thisUnsafe).getObjectVolatile(o, offset);
-#endif
-				if (ReferenceEquals(tmp(o, newValue, val), val))
+			while (true)
+			{
+
+				object z = tmp(newValue, val);
+				if (ReferenceEquals(z, val))
 				{
 					return val;
 				}
+				val = z;
 			}
+		}
+		object[] array = o as object[];
+		if(array is null){
+			return Interlocked.Exchange(ref RefFieldValue<object>(o, offset), newValue);
 		} else{
 			if(offset % 4 == 0){
 				return Interlocked.Exchange(ref array[offset / 4], newValue);
@@ -806,39 +837,30 @@ public static class Java_sun_misc_Unsafe
 			return IKVM_ExchangeLong((IntPtr)(handle.AddrOfPinnedObject().ToInt64() + offset), delta);
 		}
 		else {
-			while (true)
+			if (obj is null)
 			{
-#if !FIRST_PASS
-				long i = ((sun.misc.Unsafe)thisUnsafe).getLongVolatile(obj, offset);
-				if (compareAndSwapLong(null, obj, offset, i, delta)) {
-					return i;
+				long i = getLongVolatile(null, null, offset);
+				CompareExchangeInt64 cmpxchg = ((CompareExchangeInt64)GetDelegate(offset));
+				while (true)
+				{
+					long z = cmpxchg(delta, i);
+					if (i == z)
+					{
+						return i;
+					}
+					i = z;
 				}
-#endif
+			}
+			else
+			{
+				return Interlocked.Exchange(ref RefFieldValue<long>(obj, offset), delta);
 			}
 		}
 	}
-	private delegate int CompareExchangeInt32(object obj, int value, int comparand);
-	private delegate long CompareExchangeInt64(object obj, long value, long comparand);
-	private delegate object CompareExchangeObject(object obj, object value, object comparand);
+	private delegate int CompareExchangeInt32(int value, int comparand);
+	private delegate long CompareExchangeInt64(long value, long comparand);
+	private delegate object CompareExchangeObject(object value, object comparand);
 	private static readonly ConcurrentDictionary<long, WeakReference> cacheCompareExchange = new ConcurrentDictionary<long, WeakReference>();
-
-	private static void InterlockedResize<T>(ref T[] array, int newSize)
-	{
-		for (; ; )
-		{
-			T[] oldArray = array;
-			T[] newArray = oldArray;
-			if (oldArray.Length >= newSize)
-			{
-				return;
-			}
-			Array.Resize(ref newArray, newSize);
-			if (Interlocked.CompareExchange(ref array, newArray, oldArray) == oldArray)
-			{
-				return;
-			}
-		}
-	}
 
 	private static Delegate CreateCompareExchange(long fieldOffset)
 	{
@@ -865,18 +887,17 @@ public static class Java_sun_misc_Unsafe
 			compareExchange = InterlockedMethods.CompareExchangeOfT.MakeGenericMethod(field.FieldType);
 			delegateType = typeof(CompareExchangeObject);
 		}
-		DynamicMethod dm = new DynamicMethod("CompareExchange", signatureType, new Type[] { typeof(object), signatureType, signatureType }, field.DeclaringType);
+		DynamicMethod dm = new DynamicMethod("CompareExchange", signatureType, new Type[] { signatureType, signatureType }, field.DeclaringType);
 		ILGenerator ilgen = dm.GetILGenerator();
 		// note that we don't bother will special casing static fields, because it is legal to use ldflda on a static field
-		ilgen.Emit(OpCodes.Ldarg_0);
-		ilgen.Emit(OpCodes.Castclass, field.DeclaringType);
+		ilgen.Emit(OpCodes.Ldnull);
 		ilgen.Emit(OpCodes.Ldflda, field);
-		ilgen.Emit(OpCodes.Ldarg_1);
+		ilgen.Emit(OpCodes.Ldarg_0);
 		if (!primitive)
 		{
 			ilgen.Emit(OpCodes.Castclass, field.FieldType);
 		}
-		ilgen.Emit(OpCodes.Ldarg_2);
+		ilgen.Emit(OpCodes.Ldarg_1);
 		if (!primitive)
 		{
 			ilgen.Emit(OpCodes.Castclass, field.FieldType);
@@ -915,7 +936,7 @@ public static class Java_sun_misc_Unsafe
 		if (obj is null)
 		{
 			Stats.Log("compareAndSwapObject.", offset);
-			return ((CompareExchangeObject)GetDelegate(offset))(obj, update, expect) == expect;
+			return ((CompareExchangeObject)GetDelegate(offset))(update, expect) == expect;
 		}
 		object[] array = obj as object[];
 		if (array is null)
@@ -1365,22 +1386,7 @@ public static class Java_sun_misc_Unsafe
 		{
 			if (obj is null)
 			{
-#if FIRST_PASS
-				throw new NotImplementedException();
-#else
-				try
-				{
-					Field field = sun.misc.Unsafe.getField(offset);
-					Interlocked.MemoryBarrier();
-					int v = field.getInt(obj);
-					Interlocked.MemoryBarrier();
-					return v;
-				}
-				catch (java.lang.IllegalAccessException x)
-				{
-					throw (java.lang.InternalError)new java.lang.InternalError().initCause(x);
-				}
-#endif
+				return ((CompareExchangeInt32)GetDelegate(offset))(0, 0);
 			}
 			else
 			{
@@ -1430,21 +1436,7 @@ public static class Java_sun_misc_Unsafe
 		{
 			if (obj is null)
 			{
-#if FIRST_PASS
-				throw new NotImplementedException();
-#else
-				try
-				{
-					Field field = sun.misc.Unsafe.getField(offset);
-					Interlocked.MemoryBarrier();
-					field.setInt(obj, value);
-					Interlocked.MemoryBarrier();
-				}
-				catch (java.lang.IllegalAccessException x)
-				{
-					throw (java.lang.InternalError)new java.lang.InternalError().initCause(x);
-				}
-#endif
+				getAndAddInt(null, null, offset, value);
 			}
 			else
 			{
@@ -1752,22 +1744,7 @@ public static class Java_sun_misc_Unsafe
 		{
 			if (obj is null)
 			{
-#if FIRST_PASS
-				throw new NotImplementedException();
-#else
-				try
-				{
-					Field field = sun.misc.Unsafe.getField(offset);
-					Interlocked.MemoryBarrier();
-					long v = field.getLong(obj);
-					Interlocked.MemoryBarrier();
-					return v;
-				}
-				catch (java.lang.IllegalAccessException x)
-				{
-					throw (java.lang.InternalError)new java.lang.InternalError().initCause(x);
-				}
-#endif
+				return ((CompareExchangeInt64)GetDelegate(offset))(0, 0);
 			}
 			else
 			{
@@ -1817,21 +1794,7 @@ public static class Java_sun_misc_Unsafe
 		{
 			if (obj is null)
 			{
-#if FIRST_PASS
-				throw new NotImplementedException();
-#else
-				try
-				{
-					Field field = sun.misc.Unsafe.getField(offset);
-					Interlocked.MemoryBarrier();
-					field.setLong(obj, value);
-					Interlocked.MemoryBarrier();
-				}
-				catch (java.lang.IllegalAccessException x)
-				{
-					throw (java.lang.InternalError)new java.lang.InternalError().initCause(x);
-				}
-#endif
+				getAndAddLong(null, null, offset, value);
 			}
 			else
 			{
@@ -2003,26 +1966,12 @@ public static class Java_sun_misc_Unsafe
 
 		}
 	}
+	private static readonly object placehodler = new object();
 	public static object getObjectVolatile(object theUnsafe, object obj, long offset)
 	{
 		if (obj is null)
 		{
-#if FIRST_PASS
-				throw new NotImplementedException();
-#else
-			try
-			{
-				Field field = sun.misc.Unsafe.getField(offset);
-				Interlocked.MemoryBarrier();
-				object obj2 = field.get(obj);
-				Interlocked.MemoryBarrier();
-				return obj2;
-			}
-			catch (java.lang.IllegalAccessException x)
-			{
-				throw (java.lang.InternalError)new java.lang.InternalError().initCause(x);
-			}
-#endif
+			return ((CompareExchangeObject)GetDelegate(offset))(placehodler, placehodler);
 		}
 		object[] array = obj as object[];
 		if (array is null)
@@ -2081,21 +2030,8 @@ public static class Java_sun_misc_Unsafe
 	{
 		if (obj is null)
 		{
-#if FIRST_PASS
-				throw new NotImplementedException();
-#else
-			try
-			{
-				Field field = sun.misc.Unsafe.getField(offset);
-				Interlocked.MemoryBarrier();
-				field.set(obj, value);
-				Interlocked.MemoryBarrier();
-			}
-			catch (java.lang.IllegalAccessException x)
-			{
-				throw (java.lang.InternalError)new java.lang.InternalError().initCause(x);
-			}
-#endif
+			getAndSetObject(null, null, offset, value);
+			return;
 		}
 		object[] array = obj as object[];
 		if (array is null)
@@ -2140,7 +2076,7 @@ public static class Java_sun_misc_Unsafe
 		if (cacheCompareExchange.TryGetValue(offset, out wr))
 		{
 			compareExchange = (SwapWrapper)wr.Target;
-			if (ReferenceEquals(compareExchange, null))
+			if (compareExchange is null)
 			{
 				compareExchange = new SwapWrapper(offset);
 				
