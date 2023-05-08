@@ -400,7 +400,7 @@ public static class Java_sun_misc_Unsafe
 		CheckArrayBounds(obj, offset, 8);
 		GCHandle handle = GCHandle.Alloc(obj, GCHandleType.Pinned);
 		IntPtr ptr = (IntPtr)(handle.AddrOfPinnedObject().ToInt64() + offset);
-		long value = atomic ? IKVM_GetLong(ptr) : Marshal.ReadInt64(ptr);
+		long value = atomic ? Volatile.Read(ref UnsafeIntPtrToRef<long>(ptr)) : Marshal.ReadInt64(ptr);
 		handle.Free();
 		return value;
 	}
@@ -424,6 +424,9 @@ public static class Java_sun_misc_Unsafe
 		Marshal.WriteInt32((IntPtr)(handle.AddrOfPinnedObject().ToInt64() + offset), value);
 		handle.Free();
 	}
+	private static unsafe ref T UnsafeIntPtrToRef<T>(IntPtr intPtr){
+		return ref Unsafe.AsRef<T>(intPtr.ToPointer());
+	}
 
 	[SecuritySafeCritical]
 	public static void WriteInt64(object obj, long offset, long value, bool atomic)
@@ -433,7 +436,7 @@ public static class Java_sun_misc_Unsafe
 		GCHandle handle = GCHandle.Alloc(obj, GCHandleType.Pinned);
 		IntPtr ptr = (IntPtr)(handle.AddrOfPinnedObject().ToInt64() + offset);
 		if(atomic){
-			IKVM_SetLong(ptr, value);
+			Volatile.Write(ref UnsafeIntPtrToRef<long>(ptr), value);
 		} else{
 			Marshal.WriteInt64(ptr, value);
 		}
@@ -1757,7 +1760,7 @@ public static class Java_sun_misc_Unsafe
 	{
 		if (obj is Array)
 		{
-			WriteInt64(obj, offset, value, true);
+			WriteInt64(obj, offset, value, false);
 		}
 
 		else
