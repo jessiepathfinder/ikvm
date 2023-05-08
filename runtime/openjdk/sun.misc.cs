@@ -1706,7 +1706,7 @@ public static class Java_sun_misc_Unsafe
 	{
 		if (obj is Array)
 		{
-			return ReadInt64(obj, offset, true);
+			return ReadInt64(obj, offset, false);
 		}
 
 		else
@@ -1748,7 +1748,7 @@ public static class Java_sun_misc_Unsafe
 			}
 			else
 			{
-				return RefFieldValue<long>(obj, offset);
+				return Volatile.Read(ref RefFieldValue<long>(obj, offset));
 			}
 		}
 
