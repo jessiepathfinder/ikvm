@@ -1751,7 +1751,7 @@ public static class Java_sun_misc_Unsafe
 			}
 			else
 			{
-				return Volatile.Read(ref RefFieldValue<long>(obj, offset));
+				return Interlocked.Read(ref RefFieldValue<long>(obj, offset));
 			}
 		}
 
@@ -1801,7 +1801,7 @@ public static class Java_sun_misc_Unsafe
 			}
 			else
 			{
-				Volatile.Write(ref RefFieldValue<long>(obj, offset), value);
+				Interlocked.Write(ref RefFieldValue<long>(obj, offset), value);
 			}
 		}
 	}
