@@ -114,6 +114,7 @@ public static class Starter
 		bool debug = false;
 		String debugArg = null;
 		bool noglobbing = false;
+		bool lazydfu = false;
 		for(int i = 0; i < args.Length; i++)
 		{
 			String arg = args[i];
@@ -287,6 +288,9 @@ public static class Starter
 				{
 					Console.Error.WriteLine("Unsupported option ignored: {0}", arg);
 				}
+				else if(arg == "-XLazyDFU"){
+					lazydfu = true;
+				}
 				else
 				{
 					Console.Error.WriteLine("{0}: illegal argument", arg);
@@ -335,6 +339,10 @@ public static class Starter
 			if(jar)
 			{
 				props["java.class.path"] = mainClass;
+			}
+			if(lazydfu){
+				props["ikvm.runtime.LazyDFU"] = "true";
+				props["java.class.path"] = AppDomain.CurrentDomain.BaseDirectory + "LazyDataFixerBuilder.jar;" + props["java.class.path"];
 			}
 			// like the JDK we don't quote the args (even if they contain spaces)
 			props["sun.java.command"] = String.Join(" ", args, vmargsIndex - 1, args.Length - (vmargsIndex - 1));
@@ -433,6 +441,7 @@ public static class Starter
 		Console.Error.WriteLine("    -Xnoclassgc       Disable class garbage collection");
 		Console.Error.WriteLine("    -Xnoglobbing      Disable argument globbing");
 		Console.Error.WriteLine("    -Xverify          Enable strict class file verification");
+		Console.Error.WriteLine("    -XLazyDFU         Enable LazyDFU.NET mod for Minecraft");
 		Console.Error.WriteLine();
 		Console.Error.WriteLine("The -X options are non-standard and subject to change without notice.");
 		Console.Error.WriteLine();

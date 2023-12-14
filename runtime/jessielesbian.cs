@@ -31,7 +31,7 @@ namespace jessielesbian.IKVM
 		public static void DoNothing(){
 			
 		}
-
+		public static readonly string ikvmroot = AppDomain.CurrentDomain.BaseDirectory;
 #if STATIC_COMPILER
 		public static int optpasses = 0;
 		public static bool extremeOptimizations = false;
@@ -57,6 +57,7 @@ namespace jessielesbian.IKVM
 			}
 
 		}
+		public static readonly bool EnableLazyDFUMod = java.lang.System.getProperty("ikvm.runtime.LazyDFU") == "true";
 #endif
 	}
 }
