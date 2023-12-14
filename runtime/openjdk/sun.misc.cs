@@ -1801,7 +1801,7 @@ public static class Java_sun_misc_Unsafe
 			}
 			else
 			{
-				Interlocked.Write(ref RefFieldValue<long>(obj, offset), value);
+				Interlocked.Exchange(ref RefFieldValue<long>(obj, offset), value);
 			}
 		}
 	}
