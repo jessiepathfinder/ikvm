@@ -331,7 +331,7 @@ final class VMSystemProperties
     public static void initProperties(Properties p)
     {
         p.setProperty("openjdk.version", PropertyConstants.openjdk_version);
-        String vfsroot = getVirtualFileSystemRoot();
+        String vfsroot = cli.jessielesbian.IKVM.Helper.ikvmroot;
         p.setProperty("java.home", vfsroot.substring(0, vfsroot.length() - 1));
         // the %home%\lib\endorsed directory does not exist, but neither does it on JDK 1.7
         p.setProperty("java.endorsed.dirs", vfsroot + "lib" + cli.System.IO.Path.DirectorySeparatorChar + "endorsed");
