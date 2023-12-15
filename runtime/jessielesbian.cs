@@ -1,6 +1,7 @@
 ﻿using System;
 using IKVM.Attributes;
 using System.Collections.Generic;
+using System.IO;
 #if STATIC_COMPILER
 using IKVM.Reflection;
 using IKVM.Reflection.Emit;
@@ -23,15 +24,13 @@ namespace jessielesbian.IKVM
 	{
 
 	}
-	#if !FIRST_PASS && !STATIC_COMPILER
-	[HideFromJava]
-	#endif
+
 	public static class Helper
 	{
 		public static void DoNothing(){
 			
 		}
-		public static readonly string ikvmroot = AppDomain.CurrentDomain.BaseDirectory;
+		
 #if STATIC_COMPILER
 		public static int optpasses = 0;
 		public static bool extremeOptimizations = false;
@@ -39,6 +38,7 @@ namespace jessielesbian.IKVM
 #else
 		internal static readonly int optpasses;
 		internal static readonly bool extremeOptimizations;
+		public static readonly string ikvmroot = Path.Combine(typeof(Helper).Assembly.Location, ".." + Path.DirectorySeparatorChar + "..") + Path.DirectorySeparatorChar;
 #endif
 		internal static bool experimentalOptimizations
 		{
