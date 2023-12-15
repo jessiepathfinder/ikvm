@@ -436,6 +436,7 @@ java/security/ProtectionDomain.java
 extras/java/util/concurrent/locks/AbstractQueuedSynchronizer.java
 extras/java/util/concurrent/locks/LockSupport.java
 java/util/zip/Adler32.java
+java/util/zip/ClassStubZipEntry.java
 java/util/zip/CRC32.java
 java/util/zip/Deflater.java
 java/util/zip/ZStreamRef.java
