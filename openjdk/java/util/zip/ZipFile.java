@@ -198,6 +198,7 @@ public class ZipFile implements ZipConstants, Closeable
     try 
       {
         readEntries();
+        ClassStubZipEntry.expandIkvmClasses(this, entries);
         valid = true;
       }
     catch (EOFException throwaway)
@@ -465,6 +466,9 @@ public class ZipFile implements ZipConstants, Closeable
     final ZipEntry zipEntry = entries.get(entry.getName());
     if (zipEntry == null)
       return null;
+
+    if (zipEntry instanceof ClassStubZipEntry)
+      return ((ClassStubZipEntry)zipEntry).getInputStream();
 
     PartialInputStream inp = new PartialInputStream(1024) {
         void lazyInitialSeek() throws IOException {
