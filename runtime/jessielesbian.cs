@@ -38,7 +38,7 @@ namespace jessielesbian.IKVM
 #else
 		internal static readonly int optpasses;
 		internal static readonly bool extremeOptimizations;
-		public static readonly string ikvmroot = Path.GetFullPath(typeof(Helper).Assembly.Location + ".." + Path.DirectorySeparatorChar + ".." + Path.DirectorySeparatorChar + "..") + Path.DirectorySeparatorChar;
+		public static readonly string ikvmroot = Path.GetFullPath(typeof(Helper).Assembly.Location + Path.DirectorySeparatorChar + ".." + Path.DirectorySeparatorChar + "..") + Path.DirectorySeparatorChar;
 #endif
 		internal static bool experimentalOptimizations
 		{
