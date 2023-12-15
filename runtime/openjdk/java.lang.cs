@@ -1349,19 +1349,6 @@ public static class Java_java_lang_Thread
 
 public static class Java_java_lang_ProcessImpl
 {
-	public static string mapVfsExecutable(string path)
-	{
-		string unquoted = path;
-		if (unquoted.Length > 2 && unquoted[0] == '"' && unquoted[unquoted.Length - 1] == '"')
-		{
-			unquoted = unquoted.Substring(1, unquoted.Length - 2);
-		}
-		if (VirtualFileSystem.IsVirtualFS(unquoted))
-		{
-			return VirtualFileSystem.MapExecutable(unquoted);
-		}
-		return path;
-	}
 
 	public static int parseCommandString(string cmdstr)
 	{
@@ -1464,10 +1451,7 @@ public static class Java_java_lang_ProcessImpl
 			{
 				return true;
 			}
-			else if (mapVfsExecutable(file) != file)
-			{
-				return true;
-			}
+			
 			else
 			{
 				return false;
