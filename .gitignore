@@ -37,3 +37,8 @@ tools\pubkey.txt
 .vs/*
 *.cache
 *.pdb
+runtime/obj/Debug/.NETFramework,Version=v4.8.AssemblyAttributes.cs
+awt/obj/Debug/.NETFramework,Version=v4.8.AssemblyAttributes.cs
+ikvm/obj/Debug/.NETFramework,Version=v4.8.AssemblyAttributes.cs
+ikvmstub/obj/Debug/.NETFramework,Version=v4.8.AssemblyAttributes.cs
+obj/Debug/.NETFramework,Version=v4.8.AssemblyAttributes.cs

@@ -22,17 +22,31 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Reflection;
 using System.Security.Cryptography.X509Certificates;
+using System.Text;
+using System.Collections.Concurrent;
 
 namespace IKVM.Internal
 {
 	static class VirtualFileSystem
 	{
-		internal static readonly string RootPath = JVM.IsUnix ? "/.virtual-ikvm-home/" : @"C:\.virtual-ikvm-home\";
+		private static readonly string RootPath1 = (jessielesbian.IKVM.Helper.ikvmroot + "assembly").ToLower();
+		internal static readonly string RootPath = jessielesbian.IKVM.Helper.ikvmroot + "assembly" + System.IO.Path.DirectorySeparatorChar;
 
 		internal static bool IsVirtualFS(string path)
 		{
-			return (path.Length == RootPath.Length - 1 && String.CompareOrdinal(path, 0, RootPath, 0, RootPath.Length - 1) == 0)
-				|| String.CompareOrdinal(path, 0, RootPath, 0, RootPath.Length) == 0;
+			path = System.IO.Path.GetFullPath(path);
+			string root = RootPath1;
+			int len = path.Length;
+			int rootlen = root.Length;
+			if (len < rootlen){
+				return false;
+			}
+			for(int i = 0; i < rootlen; ++i){
+				if (char.ToLower(path[i]) != root[i]){
+					return false;
+				}
+			}
+			return true;
 		}
 
 		internal static string GetAssemblyClassesPath(Assembly asm)
@@ -41,7 +55,7 @@ namespace IKVM.Internal
 			return null;
 #else
 			// we can't use java.io.File.separatorChar here, because we're invoked by the system property setup code
-			return RootPath + "assembly" + System.IO.Path.DirectorySeparatorChar + VfsAssembliesDirectory.GetName(asm) + System.IO.Path.DirectorySeparatorChar + "classes" + System.IO.Path.DirectorySeparatorChar;
+			return new StringBuilder(RootPath).Append(VfsAssembliesDirectory.GetName(asm)).Append(System.IO.Path.DirectorySeparatorChar).Append("classes").Append(System.IO.Path.DirectorySeparatorChar).ToString();
 #endif
 		}
 
@@ -50,12 +64,12 @@ namespace IKVM.Internal
 #if FIRST_PASS
 			return null;
 #else
-			return RootPath + "assembly" + System.IO.Path.DirectorySeparatorChar + VfsAssembliesDirectory.GetName(asm) + System.IO.Path.DirectorySeparatorChar + "resources" + System.IO.Path.DirectorySeparatorChar;
+			return new StringBuilder(RootPath).Append(VfsAssembliesDirectory.GetName(asm)).Append(System.IO.Path.DirectorySeparatorChar).Append("resources").Append(System.IO.Path.DirectorySeparatorChar).ToString();
 #endif
 		}
 
 #if !FIRST_PASS
-		private static VfsDirectory root;
+		private static readonly VfsDirectory root = new VfsAssembliesDirectory();
 
 		private abstract class VfsEntry
 		{
@@ -418,7 +432,7 @@ namespace IKVM.Internal
 		private sealed class VfsAssemblyClassesDirectory : VfsDirectory
 		{
 			private readonly Assembly asm;
-			private readonly Dictionary<string, VfsEntry> classes = new Dictionary<string, VfsEntry>();
+			private readonly ConcurrentDictionary<string, VfsEntry> classes = new ConcurrentDictionary<string, VfsEntry>();
 
 			internal VfsAssemblyClassesDirectory(Assembly asm)
 			{
@@ -437,12 +451,9 @@ namespace IKVM.Internal
 					sb.Append(path[path.Length - 1], 0, path[path.Length - 1].Length - 6);
 					string className = sb.ToString();
 					VfsEntry entry;
-					lock (classes)
+					if (classes.TryGetValue(className, out entry))
 					{
-						if (classes.TryGetValue(className, out entry))
-						{
-							return entry;
-						}
+						return entry;
 					}
 					AssemblyClassLoader acl = AssemblyClassLoader.FromAssembly(asm);
 					TypeWrapper tw = null;
@@ -455,15 +466,7 @@ namespace IKVM.Internal
 					}
 					if (tw != null && !tw.IsArray)
 					{
-						lock (classes)
-						{
-							if (!classes.TryGetValue(className, out entry))
-							{
-								entry = new VfsAssemblyClass(tw);
-								classes.Add(className, entry);
-							}
-						}
-						return entry;
+						return classes.GetOrAdd(className, new VfsAssemblyClass(tw));
 					}
 					return null;
 				}
@@ -614,205 +617,19 @@ namespace IKVM.Internal
 			}
 		}
 
-		private sealed class VfsZipEntry : VfsFile
-		{
-			private readonly java.util.zip.ZipFile zipFile;
-			private readonly java.util.zip.ZipEntry entry;
 
-			internal VfsZipEntry(java.util.zip.ZipFile zipFile, java.util.zip.ZipEntry entry)
-			{
-				this.zipFile = zipFile;
-				this.entry = entry;
-			}
 
-			internal override long Size
-			{
-				get { return entry.getSize(); }
-			}
+		
 
-			internal override System.IO.Stream Open()
-			{
-				return new ZipEntryStream(zipFile, entry);
-			}
-		}
 
-		private sealed class VfsCacertsEntry : VfsFile
-		{
-			private volatile byte[] buf;
 
-			internal override long Size
-			{
-				get
-				{
-					Populate();
-					return buf.Length;
-				}
-			}
+		
 
-			internal override System.IO.Stream Open()
-			{
-				Populate();
-				return new System.IO.MemoryStream(buf, false);
-			}
 
-			private void Populate()
-			{
-				if (buf == null)
-				{
-					global::java.security.KeyStore jstore = global::java.security.KeyStore.getInstance("jks");
-					jstore.load(null);
-					global::java.security.cert.CertificateFactory cf = global::java.security.cert.CertificateFactory.getInstance("X509");
 
-					X509Store store = new X509Store(StoreName.Root, StoreLocation.LocalMachine);
-					store.Open(OpenFlags.ReadOnly | OpenFlags.OpenExistingOnly);
-					Dictionary<string, string> aliases = new Dictionary<string, string>();
-					foreach (X509Certificate2 cert in store.Certificates)
-					{
-						if (!cert.HasPrivateKey)
-						{
-							// the alias must be unique, otherwise we overwrite the previous certificate with that alias
-							string alias = cert.Subject;
-							int unique = 0;
-							while (aliases.ContainsKey(alias))
-							{
-								alias = cert.Subject + " #" + (++unique);
-							}
-							aliases.Add(alias, null);
-							jstore.setCertificateEntry(alias, cf.generateCertificate(new global::java.io.ByteArrayInputStream(cert.RawData)));
-						}
-					}
-					store.Close();
-					global::java.io.ByteArrayOutputStream baos = new global::java.io.ByteArrayOutputStream();
-					jstore.store(baos, new char[0]);
-					buf = baos.toByteArray();
-				}
-			}
-		}
-
-		private sealed class VfsVfsZipEntry : VfsFile
-		{
-			internal override long Size
-			{
-				get
-				{
-					using (System.IO.Stream stream = Open())
-					{
-						return stream.Length;
-					}
-				}
-			}
-
-			internal override System.IO.Stream Open()
-			{
-				//return new System.IO.FileStream("c:\\ikvm\\openjdk\\vfs.zip", System.IO.FileMode.Open);
-				return Assembly.GetExecutingAssembly().GetManifestResourceStream("vfs.zip");
-			}
-		}
-
-		private abstract class VfsExecutable : VfsFile
-		{
-			internal override long Size { get { return 0; } }
-
-			internal override System.IO.Stream Open()
-			{
-				return System.IO.Stream.Null;
-			}
-
-			internal abstract string GetPath();
-		}
-
-		private sealed class VfsJavaExe : VfsExecutable
-		{
-			private string path;
-
-			internal override string GetPath()
-			{
-				if (path == null)
-				{
-					path = new System.Uri(Assembly.GetEntryAssembly().CodeBase + "/../ikvm.exe").LocalPath;
-				}
-				return path;
-			}
-		}
-
-		private static void Initialize()
-		{
-			VfsDirectory root = new VfsDirectory();
-			root.AddDirectory("lib").AddDirectory("security").Add("cacerts", new VfsCacertsEntry());
-			VfsDirectory bin = new VfsDirectory();
-			root.Add("bin", bin);
-			root.Add("assembly", new VfsAssembliesDirectory());
-			AddDummyLibrary(bin, "zip");
-			AddDummyLibrary(bin, "awt");
-			AddDummyLibrary(bin, "rmi");
-			AddDummyLibrary(bin, "w2k_lsa_auth");
-			AddDummyLibrary(bin, "jaas_nt");
-			AddDummyLibrary(bin, "jaas_unix");
-			AddDummyLibrary(bin, "net");
-			AddDummyLibrary(bin, "splashscreen");
-			AddDummyLibrary(bin, "osx");
-			AddDummyLibrary(bin, "management");
-			bin.Add("java", new VfsJavaExe());
-			bin.Add("javaw", new VfsJavaExe());
-			bin.Add("java.exe", new VfsJavaExe());
-			bin.Add("javaw.exe", new VfsJavaExe());
-
-			// this is a weird loop back, the vfs.zip resource is loaded from vfs,
-			// because that's the easiest way to construct a ZipFile from a Stream.
-			java.util.zip.ZipFile zf = new java.util.zip.ZipFile(RootPath + "vfs.zip");
-			java.util.Enumeration e = zf.entries();
-			while (e.hasMoreElements())
-			{
-				try{
-					AddZipEntry(zf, root, (java.util.zip.ZipEntry)e.nextElement());
-				} catch (System.ArgumentException){
-					
-				}
-			}
-
-			// make "lib/security/local_policy.jar" point to "lib/security/US_export_policy.jar"
-			// to get the unrestricted crypto policy
-			VfsDirectory security = (VfsDirectory)((VfsDirectory)root.GetEntry("lib")).GetEntry("security");
-			security.Add("local_policy.jar", security.GetEntry("US_export_policy.jar"));
-
-			Interlocked.CompareExchange(ref VirtualFileSystem.root, root, null);
-		}
-
-		private static void AddDummyLibrary(VfsDirectory dir, string name)
-		{
-			dir.Add(java.lang.System.mapLibraryName(name), VfsDummyFile.Instance);
-		}
-
-		private static void AddZipEntry(java.util.zip.ZipFile zf, VfsDirectory root, java.util.zip.ZipEntry entry)
-		{
-			if (entry.isDirectory())
-			{
-				return;
-			}
-			string[] path = entry.getName().Split('/');
-			VfsDirectory dir = root;
-			for (int i = 0; i < path.Length - 1; i++)
-			{
-				VfsDirectory existing = dir.GetEntry(path[i]) as VfsDirectory;
-				if (existing == null)
-				{
-					existing = dir.AddDirectory(path[i]);
-				}
-				dir = existing;
-			}
-			dir.Add(path[path.Length - 1], new VfsZipEntry(zf, entry));
-		}
 
 		private static VfsEntry GetVfsEntry(string name)
 		{
-			if (root == null)
-			{
-				if (name == RootPath + "vfs.zip")
-				{
-					return new VfsVfsZipEntry();
-				}
-				Initialize();
-			}
 			if (name.Length <= RootPath.Length)
 			{
 				return root;
@@ -821,135 +638,7 @@ namespace IKVM.Internal
 			return root.GetEntry(0, path);
 		}
 
-		internal sealed class ZipEntryStream : System.IO.Stream
-		{
-			private readonly java.util.zip.ZipFile zipFile;
-			private readonly java.util.zip.ZipEntry entry;
-			private java.io.InputStream inp;
-			private long position;
 
-			internal ZipEntryStream(java.util.zip.ZipFile zipFile, java.util.zip.ZipEntry entry)
-			{
-				this.zipFile = zipFile;
-				this.entry = entry;
-				inp = zipFile.getInputStream(entry);
-			}
-
-			public override bool CanRead
-			{
-				get { return true; }
-			}
-
-			public override bool CanWrite
-			{
-				get { return false; }
-			}
-
-			public override bool CanSeek
-			{
-				get { return true; }
-			}
-
-			public override long Length
-			{
-				get { return entry.getSize(); }
-			}
-
-			public override int Read(byte[] buffer, int offset, int count)
-			{
-				// For compatibility with real file i/o, we try to read the requested number
-				// of bytes, instead of returning earlier if the underlying InputStream does so.
-				int totalRead = 0;
-				while (count > 0)
-				{
-					int read = inp.read(buffer, offset, count);
-					if (read <= 0)
-					{
-						break;
-					}
-					offset += read;
-					count -= read;
-					totalRead += read;
-					position += read;
-				}
-				return totalRead;
-			}
-
-			public override long Position
-			{
-				get
-				{
-					return position;
-				}
-				set
-				{
-					if (value < position)
-					{
-						if (value < 0)
-						{
-							throw new System.IO.IOException("Negative seek offset");
-						}
-						position = 0;
-						inp.close();
-						inp = zipFile.getInputStream(entry);
-					}
-					long skip = value - position;
-					while (skip > 0)
-					{
-						long skipped = inp.skip(skip);
-						if (skipped == 0)
-						{
-							if (position != entry.getSize())
-							{
-								throw new System.IO.IOException("skip failed");
-							}
-							// we're actually at EOF in the InputStream, but we set the virtual position beyond EOF
-							position += skip;
-							break;
-						}
-						position += skipped;
-						skip -= skipped;
-					}
-				}
-			}
-
-			public override void Flush()
-			{
-			}
-
-			public override long Seek(long offset, System.IO.SeekOrigin origin)
-			{
-				switch (origin)
-				{
-					case System.IO.SeekOrigin.Begin:
-						Position = offset;
-						break;
-					case System.IO.SeekOrigin.Current:
-						Position += offset;
-						break;
-					case System.IO.SeekOrigin.End:
-						Position = entry.getSize() + offset;
-						break;
-				}
-				return position;
-			}
-
-			public override void Write(byte[] buffer, int offset, int count)
-			{
-				throw new NotSupportedException();
-			}
-
-			public override void SetLength(long value)
-			{
-				throw new NotSupportedException();
-			}
-
-			public override void Close()
-			{
-				base.Close();
-				inp.close();
-			}
-		}
 #endif
 
 		internal static System.IO.Stream Open(string name, System.IO.FileMode fileMode, System.IO.FileAccess fileAccess)
@@ -1006,19 +695,7 @@ namespace IKVM.Internal
 #endif
 		}
 
-		internal static string MapExecutable(string path)
-		{
-#if FIRST_PASS
-			return null;
-#else
-			VfsExecutable entry = GetVfsEntry(path) as VfsExecutable;
-			if (entry == null)
-			{
-				return path;
-			}
-			return entry.GetPath();
-#endif
-		}
+
 
 		internal static string[] List(string path)
 		{

@@ -83,11 +83,7 @@ public class ZipFileSystem extends FileSystem {
     private boolean readOnly = false;
     private final Path zfpath;
     final ZipCoder zc;
-	//IKVM.NET VFS contains virtual zip files
-	//We must extract these and re-compress them as real files.
-	//Via a process known as zip shadowing
-	private static native String tryRecache(String path);
-	private final boolean deleteOnClose;
+
     // configurable by env map
     private final String  defaultDir;    // default dir for the file system
     private final String  nameEncoding;  // default encoding for name/comment
@@ -117,15 +113,8 @@ public class ZipFileSystem extends FileSystem {
             throw new IllegalArgumentException("default dir should be absolute");
 
         this.provider = provider;
-		String strpath1 = zfpath.toString();
-		String strpath2 = tryRecache(strpath1);
-		//If we are zip shadowing, we must delete the shadowed file after we are done.
-		deleteOnClose = strpath1 != strpath2;
-		if(deleteOnClose){
-			zfpath = Paths.get(strpath2);
-		}
         this.zfpath = zfpath;
-        if (Files.notExists(zfpath) && !deleteOnClose) {
+        if (Files.notExists(zfpath)) {
             if (createNew) {
                 try (OutputStream os = Files.newOutputStream(zfpath, CREATE_NEW, WRITE)) {
                     new END().write(os, 0);
@@ -325,9 +314,6 @@ public class ZipFileSystem extends FileSystem {
             }
         }
         provider.removeFileSystem(zfpath, this);
-		if(deleteOnClose){
-			zfpath.toFile().delete();
-		}
         if (ioe != null)
            throw ioe;
     }
@@ -2475,16 +2461,17 @@ public class ZipFileSystem extends FileSystem {
                             locPos += locSZ;
                              continue;
                         }
+                        int end = locPos + locSZ - 4;
                         int flag = CH(buf, locPos++);
-                        if ((flag & 0x1) != 0) {
+                        if ((flag & 0x1) != 0 && locPos <= end) {
                             mtime = unixToJavaTime(LG(buf, locPos));
                             locPos += 4;
                         }
-                        if ((flag & 0x2) != 0) {
+                        if ((flag & 0x2) != 0 && locPos <= end) {
                             atime = unixToJavaTime(LG(buf, locPos));
                             locPos += 4;
                         }
-                        if ((flag & 0x4) != 0) {
+                        if ((flag & 0x4) != 0 && locPos <= end) {
                             ctime = unixToJavaTime(LG(buf, locPos));
                             locPos += 4;
                         }

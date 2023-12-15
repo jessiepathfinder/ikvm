@@ -232,11 +232,7 @@
     </Compile>
     <Compile Include="jessielesbian.cs" />
   </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="..\openjdk\vfs.zip">
-      <LastGenOutput>..\openjdk\vfs.zip</LastGenOutput>
-    </EmbeddedResource>
-  </ItemGroup>
+
   <ItemGroup>
     <Folder Include="Properties\" />
   </ItemGroup>
