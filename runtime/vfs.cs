@@ -637,75 +637,6 @@ namespace IKVM.Internal
 			string[] path = name.Substring(RootPath.Length).Split(java.io.File.separatorChar);
 			return root.GetEntry(0, path);
 		}
-
-
-#endif
-
-		internal static System.IO.Stream Open(string name, System.IO.FileMode fileMode, System.IO.FileAccess fileAccess)
-		{
-#if FIRST_PASS
-			return null;
-#else
-			if (fileMode != System.IO.FileMode.Open || fileAccess != System.IO.FileAccess.Read)
-			{
-				throw new System.IO.IOException("vfs is read-only");
-			}
-			VfsFile entry = GetVfsEntry(name) as VfsFile;
-			if (entry == null)
-			{
-				throw new System.IO.FileNotFoundException("File not found");
-			}
-			return entry.Open();
-#endif
-		}
-
-		internal static long GetLength(string path)
-		{
-#if FIRST_PASS
-			return 0;
-#else
-			VfsFile entry = GetVfsEntry(path) as VfsFile;
-			return entry == null ? 0 : entry.Size;
-#endif
-		}
-
-		internal static bool CheckAccess(string path, int access)
-		{
-#if FIRST_PASS
-			return false;
-#else
-			return access == Java_java_io_WinNTFileSystem.ACCESS_READ && GetVfsEntry(path) != null;
-#endif
-		}
-
-		internal static int GetBooleanAttributes(string path)
-		{
-#if FIRST_PASS
-			return 0;
-#else
-			VfsEntry entry = GetVfsEntry(path);
-			if (entry == null)
-			{
-				return 0;
-			}
-			const int BA_EXISTS = 0x01;
-			const int BA_REGULAR = 0x02;
-			const int BA_DIRECTORY = 0x04;
-			return entry is VfsDirectory ? BA_EXISTS | BA_DIRECTORY : BA_EXISTS | BA_REGULAR;
-#endif
-		}
-
-
-
-		internal static string[] List(string path)
-		{
-#if FIRST_PASS
-			return null;
-#else
-			VfsDirectory dir = GetVfsEntry(path) as VfsDirectory;
-			return dir == null ? null : dir.List();
-#endif
-		}
 		internal sealed class ZipEntryStream : System.IO.Stream
 		{
 			private readonly java.util.zip.ZipFile zipFile;
@@ -835,6 +766,75 @@ namespace IKVM.Internal
 				inp.close();
 			}
 		}
+
+#endif
+
+		internal static System.IO.Stream Open(string name, System.IO.FileMode fileMode, System.IO.FileAccess fileAccess)
+		{
+#if FIRST_PASS
+			return null;
+#else
+			if (fileMode != System.IO.FileMode.Open || fileAccess != System.IO.FileAccess.Read)
+			{
+				throw new System.IO.IOException("vfs is read-only");
+			}
+			VfsFile entry = GetVfsEntry(name) as VfsFile;
+			if (entry == null)
+			{
+				throw new System.IO.FileNotFoundException("File not found");
+			}
+			return entry.Open();
+#endif
+		}
+
+		internal static long GetLength(string path)
+		{
+#if FIRST_PASS
+			return 0;
+#else
+			VfsFile entry = GetVfsEntry(path) as VfsFile;
+			return entry == null ? 0 : entry.Size;
+#endif
+		}
+
+		internal static bool CheckAccess(string path, int access)
+		{
+#if FIRST_PASS
+			return false;
+#else
+			return access == Java_java_io_WinNTFileSystem.ACCESS_READ && GetVfsEntry(path) != null;
+#endif
+		}
+
+		internal static int GetBooleanAttributes(string path)
+		{
+#if FIRST_PASS
+			return 0;
+#else
+			VfsEntry entry = GetVfsEntry(path);
+			if (entry == null)
+			{
+				return 0;
+			}
+			const int BA_EXISTS = 0x01;
+			const int BA_REGULAR = 0x02;
+			const int BA_DIRECTORY = 0x04;
+			return entry is VfsDirectory ? BA_EXISTS | BA_DIRECTORY : BA_EXISTS | BA_REGULAR;
+#endif
+		}
+
+
+
+		internal static string[] List(string path)
+		{
+#if FIRST_PASS
+			return null;
+#else
+			VfsDirectory dir = GetVfsEntry(path) as VfsDirectory;
+			return dir == null ? null : dir.List();
+#endif
+		}
+
 	}
 
 }
